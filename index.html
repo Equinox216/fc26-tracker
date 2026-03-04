@@ -254,12 +254,12 @@ canvas{width:100%!important}
 .sb-monitoring{background:var(--yellow-dim);color:var(--yellow);border:1px solid rgba(255,215,64,0.25)}
 
 /* PITCH SLOT */
-.pitch-slot{position:absolute;transform:translate(-50%,-50%);text-align:center;cursor:pointer;z-index:2;width:64px}
-.pitch-slot .ps-av{width:44px;height:44px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:14px;margin:0 auto 3px;background:rgba(6,8,15,.85);transition:.2s;position:relative}
+.pitch-slot{position:absolute;transform:translate(-50%,-50%);text-align:center;cursor:pointer;z-index:2;width:13%}
+.pitch-slot .ps-av{width:min(44px,10vw);height:min(44px,10vw);border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:clamp(10px,3vw,14px);margin:0 auto 2px;background:rgba(6,8,15,.85);transition:.2s;position:relative}
 .pitch-slot .ps-av.empty{border-style:dashed;opacity:.5;background:rgba(6,8,15,.5)}
-.pitch-slot .ps-name{font-size:9px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:64px}
-.pitch-slot .ps-ovr{position:absolute;top:-4px;right:-4px;background:var(--accent);color:#000;font-family:var(--font-d);font-size:9px;border-radius:3px;padding:1px 4px;line-height:1.4}
-.pitch-slot .ps-pos{font-size:8px;color:rgba(255,255,255,.6);margin-top:1px;letter-spacing:.5px}
+.pitch-slot .ps-name{font-size:clamp(7px,2vw,9px);font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.pitch-slot .ps-ovr{position:absolute;top:-4px;right:-4px;background:var(--accent);color:#000;font-family:var(--font-d);font-size:clamp(7px,1.8vw,9px);border-radius:3px;padding:1px 3px;line-height:1.4}
+.pitch-slot .ps-pos{font-size:clamp(6px,1.6vw,8px);color:rgba(255,255,255,.6);margin-top:1px;letter-spacing:.3px}
 .bench-chip{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:6px;transition:.15s;user-select:none}
 .bench-chip:hover{border-color:var(--border2);background:var(--bg3)}
 .bench-chip:active{opacity:.7}
@@ -636,19 +636,22 @@ canvas{width:100%!important}
     <div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:14px;padding-bottom:2px" id="formationTabs"></div>
 
     <!-- Pitch visual -->
-    <div id="pitchWrap" style="position:relative;background:linear-gradient(180deg,#0a3d1a 0%,#0d4d20 50%,#0a3d1a 100%);border-radius:12px;border:1px solid #1a6b2e;margin-bottom:14px;overflow:hidden;padding:12px 8px">
-      <!-- Pitch markings -->
-      <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" viewBox="0 0 300 420" preserveAspectRatio="none">
-        <rect x="1" y="1" width="298" height="418" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/>
-        <line x1="1" y1="210" x2="299" y2="210" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
-        <circle cx="150" cy="210" r="35" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
-        <circle cx="150" cy="210" r="2" fill="rgba(255,255,255,.2)"/>
-        <rect x="75" y="1" width="150" height="55" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
-        <rect x="110" y="1" width="80" height="22" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
-        <rect x="75" y="364" width="150" height="55" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
-        <rect x="110" y="397" width="80" height="22" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
-      </svg>
-      <div id="pitchSlots" style="position:relative;z-index:1;min-height:380px"></div>
+    <div id="pitchWrap" style="position:relative;background:linear-gradient(180deg,#0a3d1a 0%,#0d4d20 50%,#0a3d1a 100%);border-radius:12px;border:1px solid #1a6b2e;margin-bottom:14px;overflow:hidden;max-width:480px;margin-left:auto;margin-right:auto">
+      <!-- Aspect ratio container: football pitch is ~3:4.2 -->
+      <div style="position:relative;width:100%;padding-bottom:140%">
+        <!-- Pitch markings -->
+        <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" viewBox="0 0 300 420" preserveAspectRatio="xMidYMid meet">
+          <rect x="1" y="1" width="298" height="418" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/>
+          <line x1="1" y1="210" x2="299" y2="210" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+          <circle cx="150" cy="210" r="35" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+          <circle cx="150" cy="210" r="2" fill="rgba(255,255,255,.2)"/>
+          <rect x="75" y="1" width="150" height="55" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+          <rect x="110" y="1" width="80" height="22" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+          <rect x="75" y="364" width="150" height="55" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+          <rect x="110" y="397" width="80" height="22" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+        </svg>
+        <div id="pitchSlots" style="position:absolute;inset:0;z-index:1"></div>
+      </div>
     </div>
 
     <!-- Bench / unassigned -->
