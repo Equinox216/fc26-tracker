@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FC26 Tracker">
+<meta name="theme-color" content="#06080f">
+<title>FC26 Career Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #06080f;
+  --bg1: #0c0f1e;
+  --bg2: #111525;
+  --bg3: #171c2e;
+  --bg4: #1d2238;
+  --border: #232840;
+  --border2: #2e3554;
+  --accent: #00e5ff;
+  --accent-dim: rgba(0,229,255,0.12);
+  --accent-glow: rgba(0,229,255,0.25);
+  --green: #00e676;
+  --green-dim: rgba(0,230,118,0.12);
+  --yellow: #ffd740;
+  --yellow-dim: rgba(255,215,64,0.12);
+  --red: #ff5252;
+  --red-dim: rgba(255,82,82,0.12);
+  --orange: #ff9100;
+  --orange-dim: rgba(255,145,0,0.12);
+  --purple: #d500f9;
+  --purple-dim: rgba(213,0,249,0.12);
+  --text: #e8ecf8;
+  --text2: #8892b0;
+  --text3: #4a5272;
+  --font-d: 'Bebas Neue', sans-serif;
+  --font-b: 'DM Sans', sans-serif;
+  --r: 8px;
+  --safe-t: env(safe-area-inset-top,0px);
+  --safe-b: env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--font-b);font-size:14px}
+
+/* BG texture */
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(ellipse 100% 60% at 50% -20%,rgba(0,229,255,0.05) 0%,transparent 60%),
+  radial-gradient(ellipse 50% 50% at 100% 100%,rgba(213,0,249,0.03) 0%,transparent 50%);
+  pointer-events:none;z-index:0}
+
+/* ── NAV ── */
+.topbar{position:fixed;top:0;left:0;right:0;padding-top:var(--safe-t);background:rgba(6,8,15,0.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--border);z-index:100}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;padding:10px 16px}
+.logo{font-family:var(--font-d);font-size:26px;letter-spacing:2px;color:var(--text)}
+.logo em{color:var(--accent);font-style:normal}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.season-pill{font-family:var(--font-d);font-size:14px;letter-spacing:1px;color:var(--text2);background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:5px 12px;cursor:pointer;transition:.2s}
+.season-pill:hover{border-color:var(--accent);color:var(--accent)}
+.icon-btn{width:34px;height:34px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;color:var(--text2)}
+.icon-btn:hover{border-color:var(--border2);color:var(--text)}
+
+/* ── TABBAR ── */
+.tabbar{position:fixed;bottom:0;left:0;right:0;padding-bottom:var(--safe-b);background:rgba(6,8,15,0.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);z-index:100;display:flex}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px;cursor:pointer;border:none;background:none;color:var(--text3);font-family:var(--font-d);font-size:9px;letter-spacing:1px;text-transform:uppercase;transition:.2s}
+.tab svg{width:20px;height:20px;transition:.2s}
+.tab.active{color:var(--accent)}
+.tab.active svg{filter:drop-shadow(0 0 5px var(--accent))}
+
+/* ── SCROLL AREA ── */
+.main{position:fixed;top:0;left:0;right:0;bottom:0;padding-top:calc(52px + var(--safe-t));padding-bottom:calc(64px + var(--safe-b));overflow-y:auto;-webkit-overflow-scrolling:touch;z-index:1}
+.main::-webkit-scrollbar{width:3px}
+.main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+.page{display:none;padding:16px;min-height:100%}
+.page.active{display:block;animation:fadeUp .2s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── PAGE HEADER ── */
+.ph{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px}
+.ph-title{font-family:var(--font-d);font-size:36px;letter-spacing:1px;line-height:1}
+.ph-title small{display:block;font-family:var(--font-b);font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:2px}
+.btn-add{display:flex;align-items:center;gap:5px;background:var(--accent);color:#000;border:none;border-radius:var(--r);padding:9px 14px;font-family:var(--font-d);font-size:15px;letter-spacing:.5px;cursor:pointer;transition:.2s;box-shadow:0 4px 16px var(--accent-glow);flex-shrink:0}
+.btn-add:active{transform:scale(.97)}
+.btn-sm{padding:7px 12px;font-size:13px}
+
+/* ── SEARCH ── */
+.search-wrap{position:relative;margin-bottom:12px}
+.search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.search{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px 9px 36px;color:var(--text);font-family:var(--font-b);font-size:14px;outline:none;-webkit-appearance:none}
+.search:focus{border-color:var(--accent)}
+
+/* ── FILTER CHIPS ── */
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:14px;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;padding:5px 13px;border-radius:20px;background:var(--bg2);border:1px solid var(--border);color:var(--text3);font-family:var(--font-d);font-size:12px;letter-spacing:.5px;cursor:pointer;transition:.2s}
+.chip.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+
+/* ── STAT CARDS ROW ── */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.stat-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:12px 10px;text-align:center}
+.stat-n{font-family:var(--font-d);font-size:30px;line-height:1;color:var(--text)}
+.stat-n.c-accent{color:var(--accent)}
+.stat-n.c-green{color:var(--green)}
+.stat-n.c-yellow{color:var(--yellow)}
+.stat-n.c-red{color:var(--red)}
+.stat-l{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-top:3px}
+
+/* ── PLAYER CARD ── */
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:13px;cursor:pointer;transition:.18s;position:relative;overflow:hidden;margin-bottom:9px}
+.card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--pc,var(--accent));border-radius:3px 0 0 3px}
+.card:hover{border-color:var(--border2);background:var(--bg2)}
+.card-top{display:flex;align-items:center;gap:11px}
+.avatar{width:42px;height:42px;border-radius:50%;background:var(--bg3);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:16px;color:var(--text2);flex-shrink:0}
+.pinfo{flex:1;min-width:0}
+.pname{font-family:var(--font-d);font-size:19px;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1}
+.pmeta{display:flex;align-items:center;gap:7px;margin-top:3px;flex-wrap:wrap}
+.pos{font-family:var(--font-d);font-size:11px;padding:2px 7px;border-radius:3px;letter-spacing:.5px}
+.mt{font-size:11px;color:var(--text2)}
+.ratings{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.rb{display:flex;flex-direction:column;align-items:center;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 9px;min-width:46px}
+.rv{font-family:var(--font-d);font-size:22px;line-height:1}
+.rv.ovr{color:var(--text)}
+.rv.pot{color:var(--green)}
+.rv.grw{font-size:15px;color:var(--accent)}
+.rl{font-size:9px;font-weight:600;letter-spacing:1px;color:var(--text3);text-transform:uppercase;margin-top:1px}
+.card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:9px;padding-top:9px;border-top:1px solid var(--border);font-size:11px;color:var(--text2)}
+.foot-r{font-size:10px;color:var(--text3);letter-spacing:.5px}
+.exp{color:var(--yellow)}
+.exp-r{color:var(--red)}
+.notes{font-size:12px;color:var(--text3);margin-top:7px;padding:6px 9px;background:var(--bg3);border-radius:4px;border-left:2px solid var(--border2);line-height:1.4;font-style:italic}
+
+/* ── STATUS BADGE ── */
+.sbadge{font-family:var(--font-d);font-size:10px;letter-spacing:1px;padding:3px 8px;border-radius:3px;white-space:nowrap}
+.s-watch{background:rgba(0,149,255,0.12);color:#0095ff;border:1px solid rgba(0,149,255,0.25)}
+.s-target{background:var(--yellow-dim);color:var(--yellow);border:1px solid rgba(255,215,64,0.25)}
+.s-signed{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,230,118,0.25)}
+.s-passed{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,82,82,0.25)}
+.s-else{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(213,0,249,0.25)}
+.s-free{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(0,229,255,0.2)}
+.s-avail{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,230,118,0.25)}
+.s-acad{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(0,229,255,0.2)}
+.s-promo{background:var(--yellow-dim);color:var(--yellow);border:1px solid rgba(255,215,64,.25)}
+.s-loan{background:rgba(0,149,255,0.12);color:#0095ff;border:1px solid rgba(0,149,255,0.25)}
+.s-rel{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,82,82,.25)}
+.s-ret{background:rgba(100,100,100,0.15);color:#888;border:1px solid rgba(100,100,100,.2)}
+
+/* pot bar */
+.pot-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+.pot-bg{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.pot-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--green))}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:52px 20px}
+.empty-ico{font-size:44px;opacity:.3;margin-bottom:14px}
+.empty-t{font-family:var(--font-d);font-size:20px;letter-spacing:1px;color:var(--text2);text-transform:uppercase;margin-bottom:6px}
+.empty-s{font-size:13px;color:var(--text3);line-height:1.5}
+
+/* ── SECTION LABEL ── */
+.slabel{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text3);display:flex;align-items:center;gap:8px;margin:14px 0 10px}
+.slabel::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ══════════════════════════════════
+   MODAL
+══════════════════════════════════ */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--bg1);border:1px solid var(--border2);border-radius:16px 16px 0 0;width:100%;max-width:620px;max-height:92dvh;overflow-y:auto;padding:18px 18px calc(18px + var(--safe-b));animation:slideUp .28s cubic-bezier(.16,1,.3,1)}
+.modal::-webkit-scrollbar{width:3px}
+.modal::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 18px}
+.modal-title{font-family:var(--font-d);font-size:26px;letter-spacing:.5px;margin-bottom:18px}
+
+/* centered modal variant */
+.overlay.center{align-items:center;padding:20px}
+.overlay.center .modal{border-radius:16px;max-width:400px;max-height:88dvh}
+
+/* form */
+.fg{display:flex;flex-direction:column;gap:13px}
+.fr{display:grid;gap:10px}
+.fr2{grid-template-columns:1fr 1fr}
+.fr3{grid-template-columns:1fr 1fr 1fr}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2)}
+.field input,.field select,.field textarea{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:9px 11px;color:var(--text);font-family:var(--font-b);font-size:14px;outline:none;-webkit-appearance:none;width:100%;transition:border-color .2s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+.field textarea{resize:vertical;min-height:72px}
+.field select option{background:var(--bg1)}
+.form-actions{display:flex;gap:8px;margin-top:14px}
+.btn-save{flex:1;padding:13px;background:var(--accent);color:#000;border:none;border-radius:var(--r);font-family:var(--font-d);font-size:16px;letter-spacing:1px;cursor:pointer;transition:.2s}
+.btn-save:active{transform:scale(.98)}
+.btn-cancel{padding:13px 18px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-radius:var(--r);font-family:var(--font-d);font-size:16px;cursor:pointer;transition:.2s}
+.btn-del{padding:13px 16px;background:var(--red-dim);color:var(--red);border:1px solid rgba(255,82,82,.2);border-radius:var(--r);font-family:var(--font-d);font-size:14px;cursor:pointer;transition:.2s}
+
+/* ══════════════════════════════════
+   PLAYER DETAIL MODAL
+══════════════════════════════════ */
+.detail-hero{display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.detail-avatar{width:60px;height:60px;border-radius:50%;background:var(--bg3);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:22px;color:var(--text2);flex-shrink:0}
+.detail-info{flex:1;min-width:0}
+.detail-name{font-family:var(--font-d);font-size:26px;letter-spacing:.3px;line-height:1.1}
+.detail-sub{font-size:12px;color:var(--text2);margin-top:4px}
+.detail-ratings{display:flex;gap:7px;margin-top:8px}
+.detail-actions{display:flex;gap:8px;margin-top:14px}
+.btn-outline{padding:9px 14px;background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:var(--r);font-family:var(--font-d);font-size:14px;cursor:pointer;transition:.2s}
+.btn-outline:hover{border-color:var(--border2);color:var(--text)}
+.btn-accent-outline{color:var(--accent);border-color:rgba(0,229,255,.3)}
+.btn-accent-outline:hover{background:var(--accent-dim)}
+
+/* ── CHART ── */
+.chart-wrap{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;position:relative}
+.chart-title{font-family:var(--font-d);font-size:13px;letter-spacing:1px;color:var(--text2);margin-bottom:12px}
+canvas.chart{width:100%!important;display:block}
+
+/* season log */
+.season-log{display:flex;flex-direction:column;gap:0}
+.slog-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.slog-season{font-family:var(--font-d);font-size:11px;color:var(--text3);width:72px;flex-shrink:0;letter-spacing:.5px}
+.slog-ovr{font-family:var(--font-d);font-size:20px;color:var(--text);width:34px}
+.slog-note{font-size:12px;color:var(--text2);flex:1;line-height:1.4}
+.slog-delta{font-family:var(--font-d);font-size:13px;width:32px;text-align:right}
+
+/* add season entry */
+.add-season-row{display:flex;gap:7px;margin-top:10px}
+.add-season-row input,.add-season-row select{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:7px 10px;color:var(--text);font-family:var(--font-b);font-size:13px;outline:none;-webkit-appearance:none}
+.add-season-row input:focus,.add-season-row select:focus{border-color:var(--accent)}
+
+/* ══════════════════════════════════
+   CALCULATOR PAGE
+══════════════════════════════════ */
+.calc-intro{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.5}
+.calc-intro strong{color:var(--accent);font-family:var(--font-d);font-size:15px;letter-spacing:.5px}
+
+.attr-sections{display:flex;flex-direction:column;gap:14px}
+.attr-section{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.attr-section-head{padding:10px 14px;background:var(--bg2);border-bottom:1px solid var(--border);font-family:var(--font-d);font-size:14px;letter-spacing:1px;color:var(--text2);text-transform:uppercase;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.attr-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;padding:4px}
+.attr-row{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:5px}
+.attr-row:hover{background:var(--bg3)}
+.attr-name{flex:1;font-size:13px;color:var(--text2)}
+.attr-input{width:52px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:5px 8px;color:var(--text);font-family:var(--font-d);font-size:16px;outline:none;text-align:center;-webkit-appearance:none}
+.attr-input:focus{border-color:var(--accent)}
+
+.calc-results{margin-top:16px}
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.results-title{font-family:var(--font-d);font-size:22px;letter-spacing:1px}
+.pos-results{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pos-result{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:11px 12px;transition:.2s}
+.pos-result.top1{border-color:var(--accent);background:var(--accent-dim)}
+.pos-result.top2{border-color:rgba(0,229,255,.3)}
+.pr-pos{font-family:var(--font-d);font-size:20px;letter-spacing:.5px}
+.pr-score{font-family:var(--font-d);font-size:14px;color:var(--text2)}
+.pr-bar-bg{height:3px;background:var(--border);border-radius:2px;margin-top:6px;overflow:hidden}
+.pr-bar-fill{height:100%;border-radius:2px;background:var(--accent);transition:width .5s ease}
+
+.pot-result-box{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-top:14px}
+.pot-result-box h3{font-family:var(--font-d);font-size:18px;letter-spacing:1px;color:var(--text2);margin-bottom:12px}
+.pot-big{font-family:var(--font-d);font-size:52px;color:var(--green);line-height:1}
+.pot-range{font-size:12px;color:var(--text3);margin-top:4px}
+.pot-label{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-top:8px}
+
+/* ══════════════════════════════════
+   DASHBOARD PAGE
+══════════════════════════════════ */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.dash-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.dash-card.full{grid-column:1/-1}
+.dash-card-title{font-family:var(--font-d);font-size:13px;letter-spacing:1px;color:var(--text3);text-transform:uppercase;margin-bottom:10px}
+.depth-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.depth-pos{font-family:var(--font-d);font-size:13px;color:var(--text2);width:38px}
+.depth-bar-bg{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.depth-bar-fill{height:100%;border-radius:3px}
+.depth-n{font-family:var(--font-d);font-size:13px;color:var(--text);width:16px;text-align:right}
+.prospect-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+.prospect-item:last-child{border-bottom:none}
+.prospect-name{flex:1;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prospect-pot{font-family:var(--font-d);font-size:17px;color:var(--green)}
+.prospect-ovr{font-size:11px;color:var(--text3)}
+.warn-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+.warn-item:last-child{border-bottom:none}
+.warn-name{flex:1;font-size:13px;color:var(--text)}
+.warn-year{font-family:var(--font-d);font-size:15px;color:var(--yellow)}
+
+/* ══════════════════════════════════
+   TOAST
+══════════════════════════════════ */
+.toast{position:fixed;bottom:calc(72px + var(--safe-b));left:50%;transform:translateX(-50%) translateY(14px);background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:9px 18px;font-family:var(--font-d);font-size:14px;letter-spacing:.5px;color:var(--accent);z-index:400;opacity:0;transition:.25s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="logo">FC<em>26</em> TRACKER</div>
+    <div class="topbar-right">
+      <div class="season-pill" id="seasonPill">Season 1</div>
+      <div class="icon-btn" title="Export" onclick="exportData()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </div>
+      <div class="icon-btn" title="Import" onclick="document.getElementById('importFile').click()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </div>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+  </div>
+</header>
+
+<!-- MAIN SCROLL -->
+<main class="main" id="mainScroll">
+
+  <!-- ══ DASHBOARD ══ -->
+  <div class="page active" id="page-dash">
+    <div class="ph">
+      <div class="ph-title"><small>Overview</small>Dashboard</div>
+      <div class="season-pill" style="cursor:default" id="dashSeason">Season 1</div>
+    </div>
+    <div id="dashContent"></div>
+  </div>
+
+  <!-- ══ SQUAD ══ -->
+  <div class="page" id="page-squad">
+    <div class="ph">
+      <div class="ph-title"><small>My Club</small>Squad</div>
+      <button class="btn-add btn-sm" onclick="openModal('squad')">+ Add</button>
+    </div>
+    <div class="stat-row" id="squadStats"></div>
+    <div class="search-wrap">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input class="search" type="text" placeholder="Search squad…" oninput="renderSquad()">
+    </div>
+    <div class="chips" id="squadChips">
+      <div class="chip active" onclick="setChip('squad','All',this)">All</div>
+      <div class="chip" onclick="setChip('squad','GK',this)">GK</div>
+      <div class="chip" onclick="setChip('squad','DEF',this)">DEF</div>
+      <div class="chip" onclick="setChip('squad','MID',this)">MID</div>
+      <div class="chip" onclick="setChip('squad','ATT',this)">ATT</div>
+    </div>
+    <div id="squadList"></div>
+  </div>
+
+  <!-- ══ YOUTH ══ -->
+  <div class="page" id="page-youth">
+    <div class="ph">
+      <div class="ph-title"><small>Academy</small>Youth</div>
+      <button class="btn-add btn-sm" onclick="openModal('youth')">+ Add</button>
+    </div>
+    <div class="search-wrap">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input class="search" type="text" placeholder="Search academy…" oninput="renderYouth()">
+    </div>
+    <div class="chips">
+      <div class="chip active" onclick="setChip('youth','All',this)">All</div>
+      <div class="chip" onclick="setChip('youth','Academy',this)">Academy</div>
+      <div class="chip" onclick="setChip('youth','Promote',this)">Promote</div>
+      <div class="chip" onclick="setChip('youth','Loan',this)">On Loan</div>
+      <div class="chip" onclick="setChip('youth','Released',this)">Released</div>
+    </div>
+    <div id="youthList"></div>
+  </div>
+
+  <!-- ══ TRANSFERS ══ -->
+  <div class="page" id="page-xfer">
+    <div class="ph">
+      <div class="ph-title"><small>Transfer Targets</small>Watchlist</div>
+      <button class="btn-add btn-sm" onclick="openModal('xfer')">+ Add</button>
+    </div>
+    <div class="search-wrap">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input class="search" type="text" placeholder="Search targets…" oninput="renderXfer()">
+    </div>
+    <div class="chips">
+      <div class="chip active" onclick="setChip('xfer','All',this)">All</div>
+      <div class="chip" onclick="setChip('xfer','Watching',this)">Watching</div>
+      <div class="chip" onclick="setChip('xfer','Target',this)">Target</div>
+      <div class="chip" onclick="setChip('xfer','Signed',this)">Signed</div>
+      <div class="chip" onclick="setChip('xfer','Elsewhere',this)">Elsewhere</div>
+    </div>
+    <div id="xferList"></div>
+  </div>
+
+  <!-- ══ SCOUTING / FREE AGENTS ══ -->
+  <div class="page" id="page-scout">
+    <div class="ph">
+      <div class="ph-title"><small>Free Agents</small>Scouting</div>
+      <button class="btn-add btn-sm" onclick="openModal('scout')">+ Add</button>
+    </div>
+    <div class="search-wrap">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input class="search" type="text" placeholder="Search free agents…" oninput="renderScout()">
+    </div>
+    <div class="chips">
+      <div class="chip active" onclick="setChip('scout','All',this)">All</div>
+      <div class="chip" onclick="setChip('scout','Available',this)">Available</div>
+      <div class="chip" onclick="setChip('scout','Signed',this)">Signed</div>
+      <div class="chip" onclick="setChip('scout','Signed Elsewhere',this)">Elsewhere</div>
+      <div class="chip" onclick="setChip('scout','Retired',this)">Retired</div>
+    </div>
+    <div id="scoutList"></div>
+  </div>
+
+  <!-- ══ CALCULATOR ══ -->
+  <div class="page" id="page-calc">
+    <div class="ph">
+      <div class="ph-title"><small>Analysis</small>Calculator</div>
+      <button class="btn-add btn-sm" onclick="runCalc()">Calculate</button>
+    </div>
+    <div class="calc-intro">
+      <strong>Position + Potential Calculator</strong><br>
+      Enter a player's individual attributes below. The position calculator scores each position based on FC-accurate weighted formulas. The potential calculator estimates ceiling based on age and current OVR.
+    </div>
+
+    <!-- Age/OVR for potential -->
+    <div style="background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:13px;margin-bottom:14px">
+      <div class="slabel" style="margin-top:0">Player Info (for Potential Calc)</div>
+      <div class="fr fr3">
+        <div class="field"><label>Age</label><input type="number" id="cAge" placeholder="22" min="15" max="45" oninput="runCalc()"></div>
+        <div class="field"><label>Current OVR</label><input type="number" id="cOvr" placeholder="74" min="40" max="99" oninput="runCalc()"></div>
+        <div class="field"><label>Known POT (opt.)</label><input type="number" id="cPot" placeholder="88" min="40" max="99" oninput="runCalc()"></div>
+      </div>
+    </div>
+
+    <div class="attr-sections" id="attrSections"></div>
+
+    <div class="calc-results" id="calcResults" style="display:none">
+      <div class="slabel">Position Suitability</div>
+      <div class="pos-results" id="posResults"></div>
+      <div class="pot-result-box" id="potResult"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ══════════ TAB BAR ══════════ -->
+<nav class="tabbar">
+  <button class="tab active" onclick="switchTab('dash',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Dash
+  </button>
+  <button class="tab" onclick="switchTab('squad',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Squad
+  </button>
+  <button class="tab" onclick="switchTab('youth',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    Youth
+  </button>
+  <button class="tab" onclick="switchTab('xfer',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    Targets
+  </button>
+  <button class="tab" onclick="switchTab('scout',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    Scout
+  </button>
+  <button class="tab" onclick="switchTab('calc',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
+    Calc
+  </button>
+</nav>
+
+<!-- ══════════════════════════════════════
+     MODALS
+══════════════════════════════════════ -->
+
+<!-- Season Modal -->
+<div class="overlay center" id="modal-season">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Season Settings</div>
+    <div class="fg">
+      <div class="field"><label>Season Label</label><input type="text" id="seasonInput" placeholder="e.g. Season 3 — 2028/29"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeModal('season')">Cancel</button>
+      <button class="btn-save" onclick="saveSeason()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Squad Modal -->
+<div class="overlay" id="modal-squad">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="squadMT">Add Player</div>
+    <div class="fg">
+      <div class="field"><label>Full Name</label><input type="text" id="sName" placeholder="e.g. Lamine Yamal"></div>
+      <div class="fr fr3">
+        <div class="field"><label>Position</label><select id="sPos"><option>GK</option><option>CB</option><option>LB</option><option>RB</option><option>LWB</option><option>RWB</option><option>CDM</option><option>CM</option><option>CAM</option><option>LM</option><option>RM</option><option>LW</option><option>RW</option><option>CF</option><option>ST</option></select></div>
+        <div class="field"><label>Age</label><input type="number" id="sAge" placeholder="22" min="15" max="45"></div>
+        <div class="field"><label>Nationality</label><input type="text" id="sNat" placeholder="ESP"></div>
+      </div>
+      <div class="fr fr2">
+        <div class="field"><label>OVR</label><input type="number" id="sOvr" placeholder="74" min="40" max="99"></div>
+        <div class="field"><label>POT</label><input type="number" id="sPot" placeholder="88" min="40" max="99"></div>
+      </div>
+      <div class="fr fr2">
+        <div class="field"><label>Contract Until</label><input type="text" id="sContract" placeholder="2027"></div>
+        <div class="field"><label>Wage (£/wk)</label><input type="text" id="sWage" placeholder="45,000"></div>
+      </div>
+      <div class="field"><label>Notes</label><textarea id="sNotes" placeholder="Training focus, traits, development plan…"></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeModal('squad')">Cancel</button>
+      <button class="btn-del" id="sDelBtn" style="display:none" onclick="delEntry('squad')">Delete</button>
+      <button class="btn-save" onclick="saveSquad()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Youth Modal -->
+<div class="overlay" id="modal-youth">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="youthMT">Add Youth Player</div>
+    <div class="fg">
+      <div class="field"><label>Full Name</label><input type="text" id="yName" placeholder="e.g. Pedro Santos"></div>
+      <div class="fr fr3">
+        <div class="field"><label>Position</label><select id="yPos"><option>GK</option><option>CB</option><option>LB</option><option>RB</option><option>CDM</option><option>CM</option><option>CAM</option><option>LW</option><option>RW</option><option>ST</option></select></div>
+        <div class="field"><label>Age</label><input type="number" id="yAge" placeholder="17" min="14" max="21"></div>
+        <div class="field"><label>Nationality</label><input type="text" id="yNat" placeholder="BRA"></div>
+      </div>
+      <div class="fr fr2">
+        <div class="field"><label>OVR</label><input type="number" id="yOvr" placeholder="62" min="40" max="99"></div>
+        <div class="field"><label>POT</label><input type="number" id="yPot" placeholder="82" min="40" max="99"></div>
+      </div>
+      <div class="fr fr2">
+        <div class="field"><label>Status</label><select id="yStatus"><option>Academy</option><option>Promote</option><option>Loan</option><option>Released</option></select></div>
+        <div class="field"><label>Loan Club</label><input type="text" id="yLoan" placeholder="e.g. Sporting Lisbon"></div>
+      </div>
+      <div class="field"><label>Notes</label><textarea id="yNotes" placeholder="Traits, promotion timeline…"></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeModal('youth')">Cancel</button>
+      <button class="btn-del" id="yDelBtn" style="display:none" onclick="delEntry('youth')">Delete</button>
+      <button class="btn-save" onclick="saveYouth()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Transfer Modal -->
+<div class="overlay" id="modal-xfer">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="xferMT">Add Transfer Target</div>
+    <div class="fg">
+      <div class="field"><label>Full Name</label><input type="text" id="tName" placeholder="e.g. Rayan Cherki"></div>
+      <div class="fr fr3">
+        <div class="field"><label>Position</label><select id="tPos"><option>GK</option><option>CB</option><option>LB</option><option>RB</option><option>CDM</option><option>CM</option><option>CAM</option><option>LW</option><option>RW</option><option>ST</option></select></div>
+        <div class="field"><label>Age</label><input type="number" id="tAge" placeholder="21"></div>
+        <div class="field"><label>Nationality</label><input type="text" id="tNat" placeholder="FRA"></div>
+      </div>
+      <div class="fr fr2">
+        <div class="field"><label>OVR</label><input type="number" id="tOvr" placeholder="79"></div>
+        <div class="field"><label>POT</label><input type="number" id="tPot" placeholder="90"></div>
+      </div>
+      <div class="fr fr2">
+        <div class="field"><label>Current Club</label><input type="text" id="tClub" placeholder="Olympique Lyon"></div>
+        <div class="field"><label>Value / Price</label><input type="text" id="tValue" placeholder="£38M"></div>
+      </div>
+      <div class="fr fr2">
+        <div class="field"><label>Status</label><select id="tStatus"><option>Watching</option><option>Target</option><option>Signed</option><option>Passed</option><option>Elsewhere</option></select></div>
+        <div class="field"><label>Ended Up At</label><input type="text" id="tDest" placeholder="Real Madrid"></div>
+      </div>
+      <div class="field"><label>Notes</label><textarea id="tNotes" placeholder="Interest level, negotiation notes…"></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeModal('xfer')">Cancel</button>
+      <button class="btn-del" id="tDelBtn" style="display:none" onclick="delEntry('xfer')">Delete</button>
+      <button class="btn-save" onclick="saveXfer()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scout Modal -->
+<div class="overlay" id="modal-scout">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="scoutMT">Add Free Agent</div>
+    <div class="fg">
+      <div class="field"><label>Full Name</label><input type="text" id="fName" placeholder="e.g. Adrien Rabiot"></div>
+      <div class="fr fr3">
+        <div class="field"><label>Position</label><select id="fPos"><option>GK</option><option>CB</option><option>LB</option><option>RB</option><option>CDM</option><option>CM</option><option>CAM</option><option>LW</option><option>RW</option><option>ST</option></select></div>
+        <div class="field"><label>Age</label><input type="number" id="fAge" placeholder="29"></div>
+        <div class="field"><label>Nationality</label><input type="text" id="fNat" placeholder="FRA"></div>
+      </div>
+      <div class="fr fr2">
+        <div class="field"><label>OVR</label><input type="number" id="fOvr" placeholder="81"></div>
+        <div class="field"><label>Last Club</label><input type="text" id="fLast" placeholder="Juventus"></div>
+      </div>
+      <div class="fr fr2">
+        <div class="field"><label>Status</label><select id="fStatus"><option>Available</option><option>Signed</option><option>Signed Elsewhere</option><option>Retired</option></select></div>
+        <div class="field"><label>Signed By</label><input type="text" id="fBy" placeholder="if not us"></div>
+      </div>
+      <div class="field"><label>Notes</label><textarea id="fNotes" placeholder="Wage demands, interest level…"></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeModal('scout')">Cancel</button>
+      <button class="btn-del" id="fDelBtn" style="display:none" onclick="delEntry('scout')">Delete</button>
+      <button class="btn-save" onclick="saveScout()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Player Detail Modal -->
+<div class="overlay" id="modal-detail">
+  <div class="modal" id="detailContent"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════
+const SK = 'fc26v2';
+let S = {
+  season:'Season 1',
+  squad:[], youth:[], xfer:[], scout:[],
+  chips:{squad:'All',youth:'All',xfer:'All',scout:'All'}
+};
+let eId=null, eType=null;
+let detailChart=null;
+
+function load(){try{const r=localStorage.getItem(SK);if(r){const d=JSON.parse(r);S={...S,...d};if(!S.chips)S.chips={squad:'All',youth:'All',xfer:'All',scout:'All'}}}catch(e){}}
+function save(){try{localStorage.setItem(SK,JSON.stringify(S))}catch(e){}}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5)}
+
+// ═══════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════
+function switchTab(tab,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('mainScroll').scrollTop=0;
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════
+function ini(n){return(n||'?').split(' ').map(x=>x[0]||'').join('').slice(0,2).toUpperCase()}
+
+const POS_COLOR={
+  GK:'#ff9100',CB:'#3b82f6',LB:'#3b82f6',RB:'#3b82f6',LWB:'#3b82f6',RWB:'#3b82f6',
+  CDM:'#a855f7',CM:'#a855f7',CAM:'#a855f7',LM:'#a855f7',RM:'#a855f7',
+  LW:'#00e676',RW:'#00e676',CF:'#ff5252',ST:'#ff5252'
+};
+function pc(pos){return POS_COLOR[pos]||'#00e5ff'}
+
+function posGroup(pos){
+  if(pos==='GK')return'GK';
+  if(['CB','LB','RB','LWB','RWB'].includes(pos))return'DEF';
+  if(['CDM','CM','CAM','LM','RM'].includes(pos))return'MID';
+  return'ATT';
+}
+
+function contractClass(yr){
+  if(!yr)return'';
+  const y=parseInt(yr),now=new Date().getFullYear();
+  if(y<=now)return'exp-r';
+  if(y<=now+1)return'exp';
+  return'';
+}
+
+function statusClass(s){
+  const m={Watching:'s-watch',Target:'s-target',Signed:'s-signed',Passed:'s-passed',Elsewhere:'s-else',
+    Available:'s-avail','Signed Elsewhere':'s-else',Retired:'s-ret',
+    Academy:'s-acad',Promote:'s-promo',Loan:'s-loan',Released:'s-rel','Signed by us':'s-signed'};
+  return m[s]||'s-watch';
+}
+
+function setChip(type,val,el){
+  S.chips[type]=val;
+  el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  if(type==='squad')renderSquad();
+  if(type==='youth')renderYouth();
+  if(type==='xfer')renderXfer();
+  if(type==='scout')renderScout();
+}
+
+function empty(ico,t,s){return`<div class="empty"><div class="empty-ico">${ico}</div><div class="empty-t">${t}</div><div class="empty-s">${s}</div></div>`}
+
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200)}
+
+// ═══════════════════════════════════════════════════
+//  SEASON
+// ═══════════════════════════════════════════════════
+document.getElementById('seasonPill').onclick=()=>{
+  document.getElementById('seasonInput').value=S.season;
+  openModal('season');
+};
+function saveSeason(){
+  const v=document.getElementById('seasonInput').value.trim();
+  if(v){S.season=v;document.getElementById('seasonPill').textContent=v;document.getElementById('dashSeason').textContent=v;save()}
+  closeModal('season');
+}
+
+// ═══════════════════════════════════════════════════
+//  SQUAD
+// ═══════════════════════════════════════════════════
+function renderSquad(){
+  const search=document.querySelector('#page-squad .search').value.toLowerCase();
+  const f=S.chips.squad;
+  const list=S.squad.filter(p=>{
+    const ms=!search||p.name.toLowerCase().includes(search)||p.pos.toLowerCase().includes(search);
+    const mf=f==='All'||posGroup(p.pos)===f;
+    return ms&&mf;
+  }).sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+
+  // stats bar
+  const now=new Date().getFullYear();
+  const avg=S.squad.length?Math.round(S.squad.reduce((s,p)=>s+(p.ovr||0),0)/S.squad.length):0;
+  const exp=S.squad.filter(p=>p.contract&&parseInt(p.contract)<=now+1).length;
+  document.getElementById('squadStats').innerHTML=`
+    <div class="stat-card"><div class="stat-n c-accent">${S.squad.length}</div><div class="stat-l">Players</div></div>
+    <div class="stat-card"><div class="stat-n c-green">${avg||'—'}</div><div class="stat-l">Avg OVR</div></div>
+    <div class="stat-card"><div class="stat-n c-yellow">${exp}</div><div class="stat-l">Expiring</div></div>`;
+
+  const el=document.getElementById('squadList');
+  if(!list.length){el.innerHTML=empty('👤','No Players','Tap + Add to build your squad.');return}
+  el.innerHTML=list.map(p=>{
+    const g=p.pot&&p.ovr?p.pot-p.ovr:0;
+    return`<div class="card" style="--pc:${pc(p.pos)}" onclick="openDetail('squad','${p.id}')">
+      <div class="card-top">
+        <div class="avatar" style="border-color:${pc(p.pos)}40">${ini(p.name)}</div>
+        <div class="pinfo">
+          <div class="pname">${p.name}</div>
+          <div class="pmeta">
+            <span class="pos" style="color:${pc(p.pos)};background:${pc(p.pos)}20;border:1px solid ${pc(p.pos)}30">${p.pos}</span>
+            <span class="mt">${p.age?p.age+' yrs':''}${p.nat?' · '+p.nat:''}</span>
+          </div>
+        </div>
+        <div class="ratings">
+          <div class="rb"><div class="rv ovr">${p.ovr||'—'}</div><div class="rl">OVR</div></div>
+          <div class="rb"><div class="rv pot">${p.pot||'—'}</div><div class="rl">POT</div></div>
+          ${g>0?`<div class="rb"><div class="rv grw">+${g}</div><div class="rl">GRW</div></div>`:''}
+        </div>
+      </div>
+      ${p.notes?`<div class="notes">${p.notes}</div>`:''}
+      <div class="card-foot">
+        <span class="${contractClass(p.contract)}">${p.contract?'📅 Until '+p.contract:''}${p.wage?(p.contract?' · ':'')+' £'+p.wage+'/wk':''}</span>
+        <span class="foot-r">${(p.history||[]).length} seasons logged</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function saveSquad(){
+  const name=document.getElementById('sName').value.trim();
+  if(!name){toast('Enter a name');return}
+  const p={
+    id:eId||uid(),name,
+    pos:document.getElementById('sPos').value,
+    age:document.getElementById('sAge').value,
+    nat:document.getElementById('sNat').value.trim(),
+    ovr:parseInt(document.getElementById('sOvr').value)||0,
+    pot:parseInt(document.getElementById('sPot').value)||0,
+    contract:document.getElementById('sContract').value.trim(),
+    wage:document.getElementById('sWage').value.trim(),
+    notes:document.getElementById('sNotes').value.trim(),
+    history:[]
+  };
+  if(eId){
+    const i=S.squad.findIndex(x=>x.id===eId);
+    if(i>-1){p.history=S.squad[i].history||[];S.squad[i]=p}
+  } else {
+    if(p.ovr)p.history=[{season:S.season,ovr:p.ovr,note:'Initial entry'}];
+    S.squad.push(p);
+  }
+  save();renderSquad();closeModal('squad');toast(eId?'Player updated':'Player added ✓')
+}
+
+// ═══════════════════════════════════════════════════
+//  YOUTH
+// ═══════════════════════════════════════════════════
+function renderYouth(){
+  const search=document.querySelector('#page-youth .search').value.toLowerCase();
+  const f=S.chips.youth;
+  const list=S.youth.filter(p=>{
+    const ms=!search||p.name.toLowerCase().includes(search);
+    const mf=f==='All'||p.status===f;
+    return ms&&mf;
+  }).sort((a,b)=>(b.pot||0)-(a.pot||0));
+
+  const el=document.getElementById('youthList');
+  if(!list.length){el.innerHTML=empty('🌱','Academy Empty','Add youth players to track development.');return}
+  el.innerHTML=list.map(p=>{
+    const pct=p.ovr&&p.pot?Math.round(p.ovr/p.pot*100):0;
+    return`<div class="card" style="--pc:${pc(p.pos)}" onclick="openDetail('youth','${p.id}')">
+      <div class="card-top">
+        <div class="avatar" style="border-color:${pc(p.pos)}40;color:#00e676">${ini(p.name)}</div>
+        <div class="pinfo">
+          <div class="pname">${p.name}</div>
+          <div class="pmeta">
+            <span class="pos" style="color:${pc(p.pos)};background:${pc(p.pos)}20;border:1px solid ${pc(p.pos)}30">${p.pos}</span>
+            <span class="mt">${p.age?p.age+' yrs':''}${p.nat?' · '+p.nat:''}</span>
+          </div>
+          <div class="pot-row">
+            <span class="mt" style="font-size:11px;width:24px">${p.ovr||'?'}</span>
+            <div class="pot-bg"><div class="pot-fill" style="width:${pct}%"></div></div>
+            <span style="font-family:var(--font-d);font-size:15px;color:var(--green);width:26px">${p.pot||'?'}</span>
+          </div>
+        </div>
+        <span class="sbadge ${statusClass(p.status)}">${p.status}</span>
+      </div>
+      ${p.loanClub?`<div class="mt" style="margin-top:7px;font-size:12px">🔄 ${p.loanClub}</div>`:''}
+      ${p.notes?`<div class="notes">${p.notes}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function saveYouth(){
+  const name=document.getElementById('yName').value.trim();
+  if(!name){toast('Enter a name');return}
+  const p={id:eId||uid(),name,pos:document.getElementById('yPos').value,age:document.getElementById('yAge').value,nat:document.getElementById('yNat').value.trim(),ovr:parseInt(document.getElementById('yOvr').value)||0,pot:parseInt(document.getElementById('yPot').value)||0,status:document.getElementById('yStatus').value,loanClub:document.getElementById('yLoan').value.trim(),notes:document.getElementById('yNotes').value.trim(),history:[]};
+  if(eId){const i=S.youth.findIndex(x=>x.id===eId);if(i>-1){p.history=S.youth[i].history||[];S.youth[i]=p}}
+  else{if(p.ovr)p.history=[{season:S.season,ovr:p.ovr,note:'Initial entry'}];S.youth.push(p)}
+  save();renderYouth();closeModal('youth');toast(eId?'Updated':'Youth player added ✓')
+}
+
+// ═══════════════════════════════════════════════════
+//  TRANSFERS
+// ═══════════════════════════════════════════════════
+function renderXfer(){
+  const search=document.querySelector('#page-xfer .search').value.toLowerCase();
+  const f=S.chips.xfer;
+  const list=S.xfer.filter(p=>{
+    const ms=!search||p.name.toLowerCase().includes(search)||(p.club||'').toLowerCase().includes(search);
+    const mf=f==='All'||p.status===f;
+    return ms&&mf;
+  });
+  const el=document.getElementById('xferList');
+  if(!list.length){el.innerHTML=empty('🎯','No Targets','Track players you\'re eyeing in the market.');return}
+  el.innerHTML=list.map(p=>`
+    <div class="card" style="--pc:${pc(p.pos)}" onclick="openDetail('xfer','${p.id}')">
+      <div style="position:absolute;top:11px;right:11px"><span class="sbadge ${statusClass(p.status)}">${p.status}</span></div>
+      <div class="card-top" style="padding-right:80px">
+        <div class="avatar" style="border-color:${pc(p.pos)}40">${ini(p.name)}</div>
+        <div class="pinfo">
+          <div class="pname">${p.name}</div>
+          <div class="pmeta">
+            <span class="pos" style="color:${pc(p.pos)};background:${pc(p.pos)}20;border:1px solid ${pc(p.pos)}30">${p.pos}</span>
+            <span class="mt">${p.age?p.age+' yrs':''}${p.nat?' · '+p.nat:''}</span>
+          </div>
+          ${p.club?`<div class="mt" style="margin-top:3px;font-size:12px">${p.club}${p.value?' · '+p.value:''}</div>`:''}
+          ${p.dest?`<div style="font-size:12px;color:var(--purple);margin-top:2px">→ ${p.dest}</div>`:''}
+        </div>
+        <div class="ratings">
+          <div class="rb"><div class="rv ovr">${p.ovr||'—'}</div><div class="rl">OVR</div></div>
+          <div class="rb"><div class="rv pot">${p.pot||'—'}</div><div class="rl">POT</div></div>
+        </div>
+      </div>
+      ${p.notes?`<div class="notes">${p.notes}</div>`:''}
+    </div>`).join('');
+}
+
+function saveXfer(){
+  const name=document.getElementById('tName').value.trim();
+  if(!name){toast('Enter a name');return}
+  const p={id:eId||uid(),name,pos:document.getElementById('tPos').value,age:document.getElementById('tAge').value,nat:document.getElementById('tNat').value.trim(),ovr:parseInt(document.getElementById('tOvr').value)||0,pot:parseInt(document.getElementById('tPot').value)||0,club:document.getElementById('tClub').value.trim(),value:document.getElementById('tValue').value.trim(),status:document.getElementById('tStatus').value,dest:document.getElementById('tDest').value.trim(),notes:document.getElementById('tNotes').value.trim()};
+  if(eId){const i=S.xfer.findIndex(x=>x.id===eId);if(i>-1)S.xfer[i]=p}else S.xfer.push(p);
+  save();renderXfer();closeModal('xfer');toast(eId?'Updated':'Target added ✓')
+}
+
+// ═══════════════════════════════════════════════════
+//  SCOUTING / FREE AGENTS
+// ═══════════════════════════════════════════════════
+function renderScout(){
+  const search=document.querySelector('#page-scout .search').value.toLowerCase();
+  const f=S.chips.scout;
+  const list=S.scout.filter(p=>{
+    const ms=!search||p.name.toLowerCase().includes(search);
+    const mf=f==='All'||p.status===f;
+    return ms&&mf;
+  }).sort((a,b)=>(b.ovr||0)-(a.ovr||0));
+  const el=document.getElementById('scoutList');
+  if(!list.length){el.innerHTML=empty('🔍','No Free Agents','Scout the market for bargains.');return}
+  el.innerHTML=list.map(p=>`
+    <div class="card" style="--pc:${pc(p.pos)}" onclick="openDetail('scout','${p.id}')">
+      <div style="position:absolute;top:11px;right:11px"><span class="sbadge ${statusClass(p.status)}">${p.status}</span></div>
+      <div class="card-top" style="padding-right:90px">
+        <div class="avatar" style="border-color:${pc(p.pos)}40">${ini(p.name)}</div>
+        <div class="pinfo">
+          <div class="pname">${p.name}</div>
+          <div class="pmeta">
+            <span class="pos" style="color:${pc(p.pos)};background:${pc(p.pos)}20;border:1px solid ${pc(p.pos)}30">${p.pos}</span>
+            <span class="mt">${p.age?p.age+' yrs':''}${p.nat?' · '+p.nat:''}</span>
+          </div>
+          ${p.last?`<div class="mt" style="font-size:12px;margin-top:3px">Last: ${p.last}</div>`:''}
+          ${p.by&&p.status!=='Available'?`<div style="font-size:12px;color:var(--purple);margin-top:2px">→ ${p.status==='Signed'?'Signed by us':p.by}</div>`:''}
+        </div>
+        <div class="rb"><div class="rv ovr">${p.ovr||'—'}</div><div class="rl">OVR</div></div>
+      </div>
+      ${p.notes?`<div class="notes">${p.notes}</div>`:''}
+    </div>`).join('');
+}
+
+function saveScout(){
+  const name=document.getElementById('fName').value.trim();
+  if(!name){toast('Enter a name');return}
+  const p={id:eId||uid(),name,pos:document.getElementById('fPos').value,age:document.getElementById('fAge').value,nat:document.getElementById('fNat').value.trim(),ovr:parseInt(document.getElementById('fOvr').value)||0,last:document.getElementById('fLast').value.trim(),status:document.getElementById('fStatus').value,by:document.getElementById('fBy').value.trim(),notes:document.getElementById('fNotes').value.trim()};
+  if(eId){const i=S.scout.findIndex(x=>x.id===eId);if(i>-1)S.scout[i]=p}else S.scout.push(p);
+  save();renderScout();closeModal('scout');toast(eId?'Updated':'Free agent added ✓')
+}
+
+// ═══════════════════════════════════════════════════
+//  MODAL MANAGEMENT
+// ═══════════════════════════════════════════════════
+function openModal(type){
+  eId=null;eType=type;
+  clearForms(type);
+  if(type==='squad'){document.getElementById('squadMT').textContent='Add Player';document.getElementById('sDelBtn').style.display='none'}
+  if(type==='youth'){document.getElementById('youthMT').textContent='Add Youth Player';document.getElementById('yDelBtn').style.display='none'}
+  if(type==='xfer'){document.getElementById('xferMT').textContent='Add Transfer Target';document.getElementById('tDelBtn').style.display='none'}
+  if(type==='scout'){document.getElementById('scoutMT').textContent='Add Free Agent';document.getElementById('fDelBtn').style.display='none'}
+  document.getElementById('modal-'+type).classList.add('open');
+}
+
+function editModal(type,id){
+  eId=id;eType=type;
+  const dataMap={squad:S.squad,youth:S.youth,xfer:S.xfer,scout:S.scout};
+  const p=dataMap[type].find(x=>x.id===id);if(!p)return;
+  if(type==='squad'){
+    document.getElementById('squadMT').textContent='Edit Player';document.getElementById('sDelBtn').style.display='';
+    document.getElementById('sName').value=p.name||'';document.getElementById('sPos').value=p.pos||'CM';
+    document.getElementById('sAge').value=p.age||'';document.getElementById('sNat').value=p.nat||'';
+    document.getElementById('sOvr').value=p.ovr||'';document.getElementById('sPot').value=p.pot||'';
+    document.getElementById('sContract').value=p.contract||'';document.getElementById('sWage').value=p.wage||'';
+    document.getElementById('sNotes').value=p.notes||'';
+  }
+  if(type==='youth'){
+    document.getElementById('youthMT').textContent='Edit Youth Player';document.getElementById('yDelBtn').style.display='';
+    document.getElementById('yName').value=p.name||'';document.getElementById('yPos').value=p.pos||'CM';
+    document.getElementById('yAge').value=p.age||'';document.getElementById('yNat').value=p.nat||'';
+    document.getElementById('yOvr').value=p.ovr||'';document.getElementById('yPot').value=p.pot||'';
+    document.getElementById('yStatus').value=p.status||'Academy';document.getElementById('yLoan').value=p.loanClub||'';
+    document.getElementById('yNotes').value=p.notes||'';
+  }
+  if(type==='xfer'){
+    document.getElementById('xferMT').textContent='Edit Target';document.getElementById('tDelBtn').style.display='';
+    document.getElementById('tName').value=p.name||'';document.getElementById('tPos').value=p.pos||'CM';
+    document.getElementById('tAge').value=p.age||'';document.getElementById('tNat').value=p.nat||'';
+    document.getElementById('tOvr').value=p.ovr||'';document.getElementById('tPot').value=p.pot||'';
+    document.getElementById('tClub').value=p.club||'';document.getElementById('tValue').value=p.value||'';
+    document.getElementById('tStatus').value=p.status||'Watching';document.getElementById('tDest').value=p.dest||'';
+    document.getElementById('tNotes').value=p.notes||'';
+  }
+  if(type==='scout'){
+    document.getElementById('scoutMT').textContent='Edit Free Agent';document.getElementById('fDelBtn').style.display='';
+    document.getElementById('fName').value=p.name||'';document.getElementById('fPos').value=p.pos||'CM';
+    document.getElementById('fAge').value=p.age||'';document.getElementById('fNat').value=p.nat||'';
+    document.getElementById('fOvr').value=p.ovr||'';document.getElementById('fLast').value=p.last||'';
+    document.getElementById('fStatus').value=p.status||'Available';document.getElementById('fBy').value=p.by||'';
+    document.getElementById('fNotes').value=p.notes||'';
+  }
+  document.getElementById('modal-'+type).classList.add('open');
+}
+
+function closeModal(type){document.getElementById('modal-'+type).classList.remove('open');eId=null}
+
+function delEntry(type){
+  if(!eId)return;
+  const keyMap={squad:'squad',youth:'youth',xfer:'xfer',scout:'scout'};
+  const k=keyMap[type];S[k]=S[k].filter(x=>x.id!==eId);
+  save();closeModal(type);renderAll();toast('Deleted');
+}
+
+function clearForms(type){
+  const ids={
+    squad:['sName','sAge','sNat','sOvr','sPot','sContract','sWage','sNotes'],
+    youth:['yName','yAge','yNat','yOvr','yPot','yLoan','yNotes'],
+    xfer:['tName','tAge','tNat','tOvr','tPot','tClub','tValue','tDest','tNotes'],
+    scout:['fName','fAge','fNat','fOvr','fLast','fBy','fNotes']
+  };
+  (ids[type]||[]).forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+}
+
+// close on overlay click
+document.querySelectorAll('.overlay').forEach(o=>{
+  o.addEventListener('click',e=>{
+    if(e.target===o){const t=o.id.replace('modal-','');closeModal(t)}
+  });
+});
+
+// ═══════════════════════════════════════════════════
+//  PLAYER DETAIL + HISTORY CHART
+// ═══════════════════════════════════════════════════
+function openDetail(type,id){
+  const dataMap={squad:S.squad,youth:S.youth,xfer:S.xfer,scout:S.scout};
+  const p=dataMap[type].find(x=>x.id===id);if(!p)return;
+  const hist=p.history||[];
+  const canEdit=(type==='squad'||type==='youth');
+
+  let chartHtml='';
+  if(hist.length>0){
+    chartHtml=`
+    <div class="chart-wrap">
+      <div class="chart-title">OVR PROGRESSION</div>
+      <canvas class="chart" id="detailChart" height="120"></canvas>
+    </div>`;
+  }
+
+  let logHtml='';
+  if(hist.length>0){
+    logHtml=`<div class="slabel">Season Log</div><div class="season-log">`;
+    hist.forEach((h,i)=>{
+      const prev=i>0?hist[i-1].ovr:h.ovr;
+      const delta=h.ovr-prev;
+      const dc=delta>0?'var(--green)':delta<0?'var(--red)':'var(--text3)';
+      logHtml+=`<div class="slog-row">
+        <div class="slog-season">${h.season||'—'}</div>
+        <div class="slog-ovr">${h.ovr}</div>
+        <div class="slog-note">${h.note||''}</div>
+        <div class="slog-delta" style="color:${dc}">${delta!==0?(delta>0?'+':'')+delta:i===0?'':''}</div>
+      </div>`;
+    });
+    logHtml+=`</div>`;
+  }
+
+  let addSeasonHtml='';
+  if(canEdit){
+    addSeasonHtml=`
+    <div class="slabel">Log This Season</div>
+    <div class="add-season-row" style="flex-wrap:wrap;gap:7px">
+      <input type="text" id="logSeason" placeholder="Season label" value="${S.season}" style="flex:1;min-width:100px">
+      <input type="number" id="logOvr" placeholder="New OVR" min="40" max="99" style="width:80px">
+      <input type="text" id="logNote" placeholder="Notes (optional)" style="flex:2;min-width:120px">
+      <button class="btn-add btn-sm" onclick="addHistoryEntry('${type}','${id}')">+ Log</button>
+    </div>`;
+  }
+
+  document.getElementById('detailContent').innerHTML=`
+    <div class="modal-handle"></div>
+    <div class="detail-hero">
+      <div class="detail-avatar" style="border-color:${pc(p.pos)}50">${ini(p.name)}</div>
+      <div class="detail-info">
+        <div class="detail-name">${p.name}</div>
+        <div class="detail-sub">
+          <span class="pos" style="color:${pc(p.pos)};background:${pc(p.pos)}20;border:1px solid ${pc(p.pos)}30;margin-right:6px">${p.pos}</span>
+          ${p.age?p.age+' yrs · ':''}${p.nat||''}
+        </div>
+        <div class="detail-ratings">
+          <div class="rb"><div class="rv ovr">${p.ovr||'—'}</div><div class="rl">OVR</div></div>
+          ${p.pot?`<div class="rb"><div class="rv pot">${p.pot}</div><div class="rl">POT</div></div>`:''}
+          ${p.pot&&p.ovr&&p.pot>p.ovr?`<div class="rb"><div class="rv grw">+${p.pot-p.ovr}</div><div class="rl">GRW</div></div>`:''}
+        </div>
+      </div>
+    </div>
+    ${canEdit?`<div class="detail-actions">
+      <button class="btn-outline btn-accent-outline" onclick="openCalcForPlayer('${type}','${id}')">📊 Position Calc</button>
+      <button class="btn-outline" onclick="closeModal('detail');editModal('${type}','${id}')">✏️ Edit</button>
+      <button class="btn-outline" onclick="closeModal('detail')" style="margin-left:auto">Close</button>
+    </div>`:`<div class="detail-actions"><button class="btn-outline" onclick="closeModal('detail')" style="margin-left:auto">Close</button></div>`}
+    ${chartHtml}${logHtml}${addSeasonHtml}
+  `;
+
+  document.getElementById('modal-detail').classList.add('open');
+
+  if(hist.length>0){
+    setTimeout(()=>{
+      const ctx=document.getElementById('detailChart');
+      if(!ctx)return;
+      if(detailChart)detailChart.destroy();
+      detailChart=new Chart(ctx,{
+        type:'line',
+        data:{
+          labels:hist.map(h=>h.season||'?'),
+          datasets:[{
+            label:'OVR',data:hist.map(h=>h.ovr),
+            borderColor:'#00e5ff',backgroundColor:'rgba(0,229,255,0.08)',
+            borderWidth:2,pointBackgroundColor:'#00e5ff',pointRadius:4,
+            fill:true,tension:.3
+          }]
+        },
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'OVR: '+ctx.raw}}},
+          scales:{
+            x:{ticks:{color:'#4a5272',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},
+            y:{ticks:{color:'#4a5272',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},min:40,max:99}
+          }
+        }
+      });
+    },100);
+  }
+}
+
+function addHistoryEntry(type,id){
+  const season=document.getElementById('logSeason').value.trim()||S.season;
+  const ovr=parseInt(document.getElementById('logOvr').value);
+  const note=document.getElementById('logNote').value.trim();
+  if(!ovr){toast('Enter OVR rating');return}
+  const dataMap={squad:S.squad,youth:S.youth};
+  const p=dataMap[type].find(x=>x.id===id);if(!p)return;
+  if(!p.history)p.history=[];
+  // update ovr
+  p.ovr=ovr;
+  p.history.push({season,ovr,note});
+  save();toast('Season logged ✓');
+  openDetail(type,id); // refresh
+}
+
+function openCalcForPlayer(type,id){
+  closeModal('detail');
+  // switch to calc tab
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-calc').classList.add('active');
+  document.querySelectorAll('.tab')[5].classList.add('active');
+  // pre-fill age/ovr
+  const dataMap={squad:S.squad,youth:S.youth};
+  const p=(dataMap[type]||[]).find(x=>x.id===id);
+  if(p){
+    document.getElementById('cAge').value=p.age||'';
+    document.getElementById('cOvr').value=p.ovr||'';
+    document.getElementById('cPot').value=p.pot||'';
+  }
+  runCalc();
+}
+
+// ═══════════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════════
+function renderDash(){
+  const now=new Date().getFullYear();
+  const totalSquad=S.squad.length;
+  const avgOvr=totalSquad?Math.round(S.squad.reduce((s,p)=>s+(p.ovr||0),0)/totalSquad):0;
+  const expiring=S.squad.filter(p=>p.contract&&parseInt(p.contract)<=now+1);
+  const topProspects=[...S.youth,...S.squad.filter(p=>p.pot&&p.ovr&&p.pot-p.ovr>=10)]
+    .sort((a,b)=>(b.pot||0)-(a.pot||0)).slice(0,5);
+
+  // depth by position group
+  const depth={GK:0,DEF:0,MID:0,ATT:0};
+  S.squad.forEach(p=>{const g=posGroup(p.pos);if(depth[g]!==undefined)depth[g]++});
+  const maxD=Math.max(...Object.values(depth),1);
+  const depthColors={GK:'#ff9100',DEF:'#3b82f6',MID:'#a855f7',ATT:'#ff5252'};
+
+  const targets=S.xfer.filter(p=>p.status==='Watching'||p.status==='Target').length;
+
+  document.getElementById('dashContent').innerHTML=`
+    <div class="stat-row" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card"><div class="stat-n c-accent">${totalSquad}</div><div class="stat-l">Squad</div></div>
+      <div class="stat-card"><div class="stat-n c-green">${avgOvr||'—'}</div><div class="stat-l">Avg OVR</div></div>
+      <div class="stat-card"><div class="stat-n c-yellow">${expiring.length}</div><div class="stat-l">Expiring</div></div>
+      <div class="stat-card"><div class="stat-n" style="color:var(--purple)">${targets}</div><div class="stat-l">Watching</div></div>
+    </div>
+
+    <div class="dash-grid">
+      <div class="dash-card">
+        <div class="dash-card-title">Squad Depth</div>
+        ${Object.entries(depth).map(([pos,n])=>`
+        <div class="depth-row">
+          <div class="depth-pos">${pos}</div>
+          <div class="depth-bar-bg"><div class="depth-bar-fill" style="width:${Math.round(n/maxD*100)}%;background:${depthColors[pos]||'#00e5ff'}"></div></div>
+          <div class="depth-n">${n}</div>
+        </div>`).join('')}
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-card-title">Top Prospects</div>
+        ${topProspects.length?topProspects.map(p=>`
+        <div class="prospect-item">
+          <span class="pos" style="color:${pc(p.pos)};background:${pc(p.pos)}20;border:1px solid ${pc(p.pos)}30;font-size:10px">${p.pos}</span>
+          <span class="prospect-name">${p.name}</span>
+          <span class="prospect-ovr">${p.ovr}→</span>
+          <span class="prospect-pot">${p.pot||'?'}</span>
+        </div>`).join(''):`<div class="empty-s" style="text-align:center;padding:16px">No prospects yet</div>`}
+      </div>
+
+      <div class="dash-card full">
+        <div class="dash-card-title">Contract Alerts</div>
+        ${expiring.length?expiring.map(p=>`
+        <div class="warn-item">
+          <span class="pos" style="color:${pc(p.pos)};background:${pc(p.pos)}20;border:1px solid ${pc(p.pos)}30;font-size:10px">${p.pos}</span>
+          <span class="warn-name">${p.name}</span>
+          <span class="warn-year">${p.contract}</span>
+        </div>`).join(''):`<div class="empty-s" style="text-align:center;padding:16px">No expiring contracts</div>`}
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+//  POSITION + POTENTIAL CALCULATOR
+// ═══════════════════════════════════════════════════
+const ATTR_SECTIONS=[
+  {name:'Attacking',attrs:['Crossing','Finishing','Heading Accuracy','Short Passing','Volleys']},
+  {name:'Skill',attrs:['Dribbling','Curve','Free Kick Accuracy','Long Passing','Ball Control']},
+  {name:'Movement',attrs:['Acceleration','Sprint Speed','Agility','Reactions','Balance']},
+  {name:'Power',attrs:['Shot Power','Jumping','Stamina','Strength','Long Shots']},
+  {name:'Mentality',attrs:['Aggression','Composure','Interceptions','Positioning','Vision','Penalties']},
+  {name:'Defending',attrs:['Defensive Awareness','Standing Tackle','Sliding Tackle']},
+  {name:'Goalkeeper',attrs:['GK Diving','GK Handling','GK Kicking','GK Positioning','GK Reflexes']}
+];
+
+// Position weights — based on FC attribute importance per position
+const POS_WEIGHTS={
+  GK:{Reactions:10,'GK Diving':20,'GK Handling':18,'GK Kicking':10,'GK Positioning':20,'GK Reflexes':22},
+  CB:{'Defensive Awareness':22,'Standing Tackle':20,'Sliding Tackle':15,Strength:15,Jumping:12,'Short Passing':8,Reactions:8},
+  LB:{'Defensive Awareness':18,'Standing Tackle':15,'Sliding Tackle':10,Crossing:16,Stamina:14,'Sprint Speed':14,Acceleration:13},
+  RB:{'Defensive Awareness':18,'Standing Tackle':15,'Sliding Tackle':10,Crossing:16,Stamina:14,'Sprint Speed':14,Acceleration:13},
+  CDM:{'Defensive Awareness':20,'Standing Tackle':18,'Short Passing':15,Stamina:14,Strength:12,Composure:11,Interceptions:10},
+  CM:{'Short Passing':18,'Long Passing':14,Stamina:14,Composure:13,Dribbling:12,Vision:15,'Ball Control':14},
+  CAM:{Dribbling:18,'Ball Control':16,Vision:16,'Short Passing':16,Composure:14,Finishing:10,Reactions:10},
+  LM:{Crossing:18,Dribbling:16,'Sprint Speed':15,Acceleration:15,'Ball Control':14,Stamina:12,Agility:10},
+  RM:{Crossing:18,Dribbling:16,'Sprint Speed':15,Acceleration:15,'Ball Control':14,Stamina:12,Agility:10},
+  LW:{Dribbling:20,'Sprint Speed':16,Acceleration:16,Finishing:14,'Ball Control':12,Agility:12,Composure:10},
+  RW:{Dribbling:20,'Sprint Speed':16,Acceleration:16,Finishing:14,'Ball Control':12,Agility:12,Composure:10},
+  CF:{Finishing:20,Dribbling:16,Composure:14,Positioning:14,Reactions:12,'Ball Control':12,Agility:12},
+  ST:{Finishing:24,Positioning:18,Composure:14,Reactions:14,'Sprint Speed':10,Strength:12,'Heading Accuracy':8}
+};
+
+function buildAttrSections(){
+  const el=document.getElementById('attrSections');
+  el.innerHTML=ATTR_SECTIONS.map((sec,si)=>`
+    <div class="attr-section">
+      <div class="attr-section-head" onclick="toggleSection(${si})">
+        ${sec.name}
+        <svg id="arr${si}" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg>
+      </div>
+      <div class="attr-grid" id="sec${si}">
+        ${sec.attrs.map(a=>`
+        <div class="attr-row">
+          <div class="attr-name">${a}</div>
+          <input class="attr-input" type="number" min="1" max="99" placeholder="0"
+            data-attr="${a}" oninput="runCalc()" id="attr_${a.replace(/\s+/g,'_')}">
+        </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function toggleSection(i){
+  const sec=document.getElementById('sec'+i);
+  const arr=document.getElementById('arr'+i);
+  const hidden=sec.style.display==='none';
+  sec.style.display=hidden?'':'none';
+  arr.style.transform=hidden?'':'rotate(180deg)';
+}
+
+function getAttrs(){
+  const vals={};
+  document.querySelectorAll('.attr-input').forEach(el=>{
+    const v=parseInt(el.value)||0;
+    if(v>0)vals[el.dataset.attr]=v;
+  });
+  return vals;
+}
+
+function scorePosition(attrs,pos){
+  const weights=POS_WEIGHTS[pos];if(!weights)return 0;
+  let total=0,wSum=0;
+  for(const[attr,w]of Object.entries(weights)){
+    const v=attrs[attr]||0;
+    total+=v*w;
+    wSum+=w;
+  }
+  return wSum>0?Math.round(total/wSum):0;
+}
+
+function calcPotential(age,ovr){
+  // Age-based potential ceiling formula
+  // Peak age ~26-28, decline after, youth has higher ceiling
+  const agePenalty=age<=17?0:age<=20?2:age<=23?5:age<=26?8:age<=29?12:age<=32?18:age<=35?26:35;
+  const rawPot=Math.min(99,ovr+agePenalty);
+  const low=Math.max(ovr,rawPot-4);
+  const high=Math.min(99,rawPot+3);
+  return{low,mid:rawPot,high};
+}
+
+function potLabel(pot){
+  if(pot>=90)return{label:'World Class',color:'#ffd740'};
+  if(pot>=85)return{label:'Elite',color:'#00e676'};
+  if(pot>=80)return{label:'Very Good',color:'#00e5ff'};
+  if(pot>=75)return{label:'Good',color:'#82b1ff'};
+  if(pot>=70)return{label:'Average',color:'#a0a0a0'};
+  return{label:'Below Average',color:'#ff5252'};
+}
+
+function runCalc(){
+  const attrs=getAttrs();
+  const age=parseInt(document.getElementById('cAge').value)||0;
+  const ovr=parseInt(document.getElementById('cOvr').value)||0;
+  const knownPot=parseInt(document.getElementById('cPot').value)||0;
+  const hasAttrs=Object.keys(attrs).length>0;
+  const hasBasic=age>0&&ovr>0;
+  if(!hasAttrs&&!hasBasic){document.getElementById('calcResults').style.display='none';return}
+  document.getElementById('calcResults').style.display='';
+
+  // Position scores
+  if(hasAttrs){
+    const scores=Object.keys(POS_WEIGHTS).map(pos=>({pos,score:scorePosition(attrs,pos)}))
+      .filter(x=>x.score>0)
+      .sort((a,b)=>b.score-a.score);
+    const maxScore=scores[0]?.score||1;
+    document.getElementById('posResults').innerHTML=scores.slice(0,10).map((x,i)=>`
+      <div class="pos-result ${i===0?'top1':i===1?'top2':''}">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="pr-pos" style="color:${i===0?'var(--accent)':pc(x.pos)}">${x.pos}</div>
+          <div class="pr-score">${x.score}/99</div>
+        </div>
+        <div class="pr-bar-bg"><div class="pr-bar-fill" style="width:${Math.round(x.score/maxScore*100)}%;background:${i===0?'var(--accent)':pc(x.pos)}"></div></div>
+      </div>`).join('');
+  } else {
+    document.getElementById('posResults').innerHTML=`<div class="empty-s" style="grid-column:1/-1;text-align:center;padding:16px">Enter attributes to see position scores</div>`;
+  }
+
+  // Potential
+  if(hasBasic){
+    const pot=knownPot?{low:knownPot,mid:knownPot,high:knownPot}:calcPotential(age,ovr);
+    const lbl=potLabel(pot.mid);
+    document.getElementById('potResult').innerHTML=`
+      <h3>Potential Estimate</h3>
+      <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+        <div>
+          <div class="pot-big" style="color:${lbl.color}">${pot.mid}</div>
+          <div class="pot-range">Range: ${pot.low} – ${pot.high}</div>
+        </div>
+        <div>
+          <div class="pot-label">${lbl.label}</div>
+          <div class="mt" style="margin-top:6px">Age ${age} · OVR ${ovr}</div>
+          <div class="mt" style="margin-top:4px;font-size:11px">${knownPot?'Using known potential':'Estimated from age curve'}</div>
+        </div>
+      </div>`;
+  } else {
+    document.getElementById('potResult').innerHTML=`<h3>Potential Estimate</h3><div class="empty-s">Enter age and OVR to estimate potential ceiling</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  EXPORT / IMPORT
+// ═══════════════════════════════════════════════════
+function exportData(){
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`fc26-tracker-${Date.now()}.json`;
+  a.click();
+  toast('Data exported ✓');
+}
+
+function importData(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      S={...S,...d};
+      if(!S.chips)S.chips={squad:'All',youth:'All',xfer:'All',scout:'All'};
+      save();renderAll();
+      document.getElementById('seasonPill').textContent=S.season;
+      document.getElementById('dashSeason').textContent=S.season;
+      toast('Data imported ✓');
+    }catch(err){toast('Invalid file')}
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER ALL
+// ═══════════════════════════════════════════════════
+function renderAll(){
+  renderDash();
+  renderSquad();
+  renderYouth();
+  renderXfer();
+  renderScout();
+}
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+load();
+document.getElementById('seasonPill').textContent=S.season;
+document.getElementById('dashSeason').textContent=S.season;
+buildAttrSections();
+renderAll();
+</script>
+</body>
+</html>
