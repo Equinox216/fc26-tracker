@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Clean Sheet">
+<meta name="apple-mobile-web-app-title" content="FC26 Tracker">
 <meta name="theme-color" content="#06080f">
-<title>Clean Sheet</title>
+<title>FC26 Career Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -293,7 +293,7 @@ canvas{width:100%!important}
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="logo">CLEAN<em>SHEET</em></div>
+    <div class="logo">FC<em>26</em></div>
     <div class="topbar-right">
       <div class="season-pill" id="seasonPill" onclick="openSeasonModal()">SEASON 1</div>
       <div class="icon-btn" onclick="openImport()" title="Import from Save File">
@@ -313,7 +313,7 @@ canvas{width:100%!important}
   <div class="page active" id="page-dash">
     <div class="dash-hero">
       <div class="dash-club" id="dashClub">FC BARCELONA</div>
-      <div class="dash-manager" id="dashManager">CLEAN SHEET</div>
+      <div class="dash-manager" id="dashManager">CAREER TRACKER</div>
       <div class="dash-season" id="dashSeason">Season 1</div>
     </div>
     <div class="dash-grid" style="grid-template-columns:1fr 1fr 1fr">
@@ -336,7 +336,7 @@ canvas{width:100%!important}
   <!-- SQUAD -->
   <div class="page" id="page-squad">
     <div class="ph">
-      <div class="ph-title"><small>BENCHPAD</small>Squad</div>
+      <div class="ph-title"><small>FIRST TEAM</small>Squad</div>
       <button class="btn-add" id="squadAddBtn" onclick="openModal('squad')">+ ADD</button>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:12px">
@@ -414,7 +414,7 @@ canvas{width:100%!important}
   <!-- YOUTH -->
   <div class="page" id="page-youth">
     <div class="ph">
-      <div class="ph-title"><small>ACADEMY</small>Youth</div>
+      <div class="ph-title"><small>DEVELOPMENT</small>Youth</div>
       <button class="btn-add" onclick="openModal('youth')">+ ADD</button>
     </div>
     <div class="filter-bar">
@@ -486,7 +486,7 @@ canvas{width:100%!important}
   <!-- TRANSFERS -->
   <div class="page" id="page-xfer">
     <div class="ph">
-      <div class="ph-title"><small>SCOUTPAD</small>Targets</div>
+      <div class="ph-title"><small>SCOUTING</small>Targets</div>
       <button class="btn-add" id="xferAddBtn" onclick="openXferModal()">+ ADD</button>
     </div>
 
@@ -494,7 +494,7 @@ canvas{width:100%!important}
     <div class="xtabs">
       <div class="xtab active" id="xtab-senior" onclick="switchXferTab('senior')">🎯 Senior</div>
       <div class="xtab yt" id="xtab-youth" onclick="switchXferTab('youth')">🌱 Youth</div>
-      <div class="xtab" id="xtab-db" onclick="switchXferTab('db')">🔍 SCOUTPAD</div>
+      <div class="xtab" id="xtab-db" onclick="switchXferTab('db')">🔍 Scout DB</div>
     </div>
 
     <!-- Senior targets section -->
@@ -631,7 +631,7 @@ canvas{width:100%!important}
   <!-- TACTICS -->
   <div class="page" id="page-calc">
     <!-- Formation picker tabs -->
-    <div class="ph"><div class="ph-title"><small>BENCHPAD</small>Tactics</div></div>
+    <div class="ph"><div class="ph-title"><small>TACTICAL</small>Planner</div></div>
 
     <div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:14px;padding-bottom:2px" id="formationTabs"></div>
 
@@ -961,60 +961,17 @@ canvas{width:100%!important}
       <div id="detHistory"></div>
       <div class="chart-wrap"><canvas id="detChart"></canvas></div>
     </div>
-    <!-- Tournament history (youth only) -->
-    <div id="detTourneySection" style="display:none;margin-top:14px">
-      <div style="font-size:11px;font-family:var(--font-d);letter-spacing:1px;color:var(--text3);margin-bottom:8px">TOURNAMENTS</div>
-      <div id="detTourneyList"></div>
-    </div>
     <div style="margin-top:8px">
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn-edit-det" id="detEditBtn" style="flex:1">✏️ Edit Player</button>
         <button class="btn-edit-det" id="detStatsBtn" style="flex:1;background:var(--green-dim);border-color:rgba(0,230,118,.3);color:var(--green)">📊 Log Stats</button>
         <button class="btn-edit-det" id="detPromoteBtn" style="width:100%;display:none;background:var(--accent-dim,rgba(0,229,255,.1));border-color:rgba(0,229,255,.3);color:var(--accent)">⬆️ Promote to First Team</button>
-        <button class="btn-edit-det" id="detTourneyBtn" style="width:100%;display:none;background:rgba(255,215,0,.1);border-color:rgba(255,215,0,.3);color:#ffd700">🏆 Log Tournament</button>
-        <button class="btn-edit-det" id="detTourneyBtn" style="width:100%;display:none;background:rgba(255,215,0,.1);border-color:rgba(255,215,0,.3);color:#ffd700">🏆 Log Tournament</button>
       </div>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
-
-<!-- ═══ YOUTH TOURNAMENT MODAL ═══ -->
-<div class="overlay" id="modal-tourney">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="tourneyMT">Log Tournament</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:14px" id="tourneyPlayerName"></div>
-    <input type="hidden" id="tourneyEntryIdx">
-    <div class="form-row">
-      <label class="form-label">Tournament Name</label>
-      <input class="finput" id="tourneyName" placeholder="e.g. U18 Premier League">
-    </div>
-    <div class="form-grid">
-      <div class="form-row"><label class="form-label">Season</label><input class="finput" id="tourneySeason" placeholder="e.g. Season 2"></div>
-      <div class="form-row"><label class="form-label">Apps</label><input class="finput" id="tourneyApps" type="number" placeholder="6"></div>
-    </div>
-    <div class="form-grid" id="tourneyAttFields">
-      <div class="form-row"><label class="form-label">Goals</label><input class="finput" id="tourneyGoals" type="number" placeholder="0"></div>
-      <div class="form-row"><label class="form-label">Assists</label><input class="finput" id="tourneyAssists" type="number" placeholder="0"></div>
-    </div>
-    <div class="form-grid" id="tourneyGkFields" style="display:none">
-      <div class="form-row"><label class="form-label">Clean Sheets</label><input class="finput" id="tourneyClean" type="number" placeholder="0"></div>
-      <div class="form-row"><label class="form-label">Conceded</label><input class="finput" id="tourneyConceded" type="number" placeholder="0"></div>
-    </div>
-    <div class="form-grid">
-      <div class="form-row"><label class="form-label">Avg Rating</label><input class="finput" id="tourneyRating" type="number" step="0.1" placeholder="7.2"></div>
-      <div class="form-row"><label class="form-label">Result</label><input class="finput" id="tourneyResult" placeholder="e.g. Won, Runner-up"></div>
-    </div>
-    <div class="form-row"><label class="form-label">Note</label><input class="finput" id="tourneyNote" placeholder="e.g. Top scorer of the tournament"></div>
-    <div class="sheet-btns">
-      <button class="btn-cancel" onclick="closeModal('tourney')">Cancel</button>
-      <button class="btn-del" id="tourneyDelBtn" style="display:none" onclick="delTourneyEntry()">Delete</button>
-      <button class="btn-save" onclick="saveTourneyEntry()">Save</button>
-    </div>
-  </div>
-</div>
 
 <!-- ═══ SEASON STATS MODAL ═══ -->
 <div class="overlay" id="modal-stats">
@@ -1049,42 +1006,6 @@ canvas{width:100%!important}
       <button class="btn-cancel" onclick="closeModal('stats')">Cancel</button>
       <button class="btn-del" id="statsDelBtn" style="display:none" onclick="delStatEntry()">Delete</button>
       <button class="btn-save" onclick="saveStatEntry()">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ YOUTH TOURNAMENT MODAL ═══ -->
-<div class="overlay" id="modal-tourney">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="tourneyMT">Log Tournament</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:14px" id="tourneyPlayerName"></div>
-    <input type="hidden" id="tourneyEntryIdx">
-    <div class="form-row">
-      <label class="form-label">Tournament Name</label>
-      <input class="finput" id="tourneyName" placeholder="e.g. U18 Premier League">
-    </div>
-    <div class="form-grid">
-      <div class="form-row"><label class="form-label">Season</label><input class="finput" id="tourneySeason" placeholder="e.g. Season 2"></div>
-      <div class="form-row"><label class="form-label">Apps</label><input class="finput" id="tourneyApps" type="number" placeholder="6"></div>
-    </div>
-    <div class="form-grid" id="tourneyAttFields">
-      <div class="form-row"><label class="form-label">Goals</label><input class="finput" id="tourneyGoals" type="number" placeholder="0"></div>
-      <div class="form-row"><label class="form-label">Assists</label><input class="finput" id="tourneyAssists" type="number" placeholder="0"></div>
-    </div>
-    <div class="form-grid" id="tourneyGkFields" style="display:none">
-      <div class="form-row"><label class="form-label">Clean Sheets</label><input class="finput" id="tourneyClean" type="number" placeholder="0"></div>
-      <div class="form-row"><label class="form-label">Conceded</label><input class="finput" id="tourneyConceded" type="number" placeholder="0"></div>
-    </div>
-    <div class="form-grid">
-      <div class="form-row"><label class="form-label">Avg Rating</label><input class="finput" id="tourneyRating" type="number" step="0.1" placeholder="7.2"></div>
-      <div class="form-row"><label class="form-label">Result</label><input class="finput" id="tourneyResult" placeholder="e.g. Won, Runner-up"></div>
-    </div>
-    <div class="form-row"><label class="form-label">Note</label><input class="finput" id="tourneyNote" placeholder="e.g. Top scorer of the tournament"></div>
-    <div class="sheet-btns">
-      <button class="btn-cancel" onclick="closeModal('tourney')">Cancel</button>
-      <button class="btn-del" id="tourneyDelBtn" style="display:none" onclick="delTourneyEntry()">Delete</button>
-      <button class="btn-save" onclick="saveTourneyEntry()">Save</button>
     </div>
   </div>
 </div>
@@ -1914,102 +1835,6 @@ function delStatEntry() {
 }
 
 // ═══════════════════════════════════════════════════
-//  YOUTH TOURNAMENT STATS
-// ═══════════════════════════════════════════════════
-let tourneyType = null, tourneyId = null, tourneyIdx = -1;
-
-function openTourneyEntry(type, id, entryIdx) {
-  tourneyType = type; tourneyId = id; tourneyIdx = entryIdx;
-  if (!S.xferYouth) S.xferYouth = [];
-  const m = {squad:S.squad, youth:S.youth, xfer:S.xfer, xferYouth:S.xferYouth, scout:S.scout};
-  const p = m[type]?.find(x=>x.id===id);
-  if (!p) return;
-  const isGK = p.pos === 'GK';
-  document.getElementById('tourneyAttFields').style.display = isGK ? 'none' : '';
-  document.getElementById('tourneyGkFields').style.display  = isGK ? '' : 'none';
-  document.getElementById('tourneyPlayerName').textContent = `${p.name} · ${p.pos}`;
-  if (entryIdx >= 0 && p.tournaments?.[entryIdx]) {
-    const t = p.tournaments[entryIdx];
-    document.getElementById('tourneyMT').textContent = 'Edit Tournament';
-    document.getElementById('tourneyDelBtn').style.display = '';
-    document.getElementById('tourneyName').value    = t.name     || '';
-    document.getElementById('tourneySeason').value  = t.season   || S.season;
-    document.getElementById('tourneyApps').value    = t.apps     || '';
-    document.getElementById('tourneyGoals').value   = t.goals    ?? '';
-    document.getElementById('tourneyAssists').value = t.assists  ?? '';
-    document.getElementById('tourneyClean').value   = t.clean    ?? '';
-    document.getElementById('tourneyConceded').value= t.conceded ?? '';
-    document.getElementById('tourneyRating').value  = t.rating   || '';
-    document.getElementById('tourneyResult').value  = t.result   || '';
-    document.getElementById('tourneyNote').value    = t.note     || '';
-  } else {
-    document.getElementById('tourneyMT').textContent = 'Log Tournament';
-    document.getElementById('tourneyDelBtn').style.display = 'none';
-    document.getElementById('tourneyName').value    = '';
-    document.getElementById('tourneySeason').value  = S.season;
-    document.getElementById('tourneyApps').value    = '';
-    document.getElementById('tourneyGoals').value   = '';
-    document.getElementById('tourneyAssists').value = '';
-    document.getElementById('tourneyClean').value   = '';
-    document.getElementById('tourneyConceded').value= '';
-    document.getElementById('tourneyRating').value  = '';
-    document.getElementById('tourneyResult').value  = '';
-    document.getElementById('tourneyNote').value    = '';
-  }
-  document.getElementById('modal-tourney').classList.add('open');
-}
-
-function saveTourneyEntry() {
-  if (!tourneyType || !tourneyId) return;
-  if (!S.xferYouth) S.xferYouth = [];
-  const m = {squad:S.squad, youth:S.youth, xfer:S.xfer, xferYouth:S.xferYouth, scout:S.scout};
-  const p = m[tourneyType]?.find(x=>x.id===tourneyId);
-  if (!p) return;
-  if (!p.tournaments) p.tournaments = [];
-  const tName = document.getElementById('tourneyName').value.trim();
-  if (!tName) { toast('Enter a tournament name'); return; }
-  const entry = {
-    name:     tName,
-    season:   document.getElementById('tourneySeason').value.trim() || S.season,
-    apps:     parseInt(document.getElementById('tourneyApps').value)     || undefined,
-    goals:    document.getElementById('tourneyGoals').value    !== '' ? parseInt(document.getElementById('tourneyGoals').value)||0    : undefined,
-    assists:  document.getElementById('tourneyAssists').value  !== '' ? parseInt(document.getElementById('tourneyAssists').value)||0  : undefined,
-    clean:    document.getElementById('tourneyClean').value    !== '' ? parseInt(document.getElementById('tourneyClean').value)||0    : undefined,
-    conceded: document.getElementById('tourneyConceded').value !== '' ? parseInt(document.getElementById('tourneyConceded').value)||0 : undefined,
-    rating:   document.getElementById('tourneyRating').value   !== '' ? parseFloat(document.getElementById('tourneyRating').value)||0 : undefined,
-    result:   document.getElementById('tourneyResult').value.trim()  || undefined,
-    note:     document.getElementById('tourneyNote').value.trim()    || undefined,
-  };
-  Object.keys(entry).forEach(k => entry[k] === undefined && delete entry[k]);
-  if (tourneyIdx >= 0 && p.tournaments[tourneyIdx]) {
-    p.tournaments[tourneyIdx] = entry;
-  } else {
-    p.tournaments.push(entry);
-  }
-  save();
-  closeModal('tourney');
-  openDetail(tourneyType, tourneyId);
-  toast('Tournament saved ✓');
-}
-
-function delTourneyEntry() {
-  if (!tourneyType || !tourneyId || tourneyIdx < 0) return;
-  if (!S.xferYouth) S.xferYouth = [];
-  const m = {squad:S.squad, youth:S.youth, xfer:S.xfer, xferYouth:S.xferYouth, scout:S.scout};
-  const p = m[tourneyType]?.find(x=>x.id===tourneyId);
-  if (!p || !p.tournaments) return;
-  p.tournaments.splice(tourneyIdx, 1);
-  save();
-  closeModal('tourney');
-  openDetail(tourneyType, tourneyId);
-  toast('Entry deleted');
-}
-
-// ═══════════════════════════════════════════════════
-//  YOUTH TOURNAMENT STATS
-// ═══════════════════════════════════════════════════
-
-// ═══════════════════════════════════════════════════
 //  SCOUT DATABASE
 // ═══════════════════════════════════════════════════
 let dbSearchTimeout = null;
@@ -2314,42 +2139,7 @@ function openDetail(type, id) {
       }).join('')
     : '<div style="color:var(--text3);font-size:13px;text-align:center;padding:12px">No history yet — tap + Log Stats</div>';
   renderDetailChart(hist);
-  // Tournament history (youth only)
-  const tourneySection = document.getElementById('detTourneySection');
-  const tourneyList = document.getElementById('detTourneyList');
-  if (tourneySection && tourneyList) {
-    const tours = p.tournaments || [];
-    if (type === 'youth') {
-      tourneySection.style.display = '';
-      tourneyList.innerHTML = tours.length
-        ? tours.map((t, ti) => {
-            const isGK = p.pos === 'GK';
-            const stats = [];
-            if (t.apps)             stats.push(t.apps + ' apps');
-            if (!isGK) {
-              if (t.goals   != null) stats.push('⚽ ' + t.goals);
-              if (t.assists != null) stats.push('🎯 ' + t.assists);
-            } else {
-              if (t.clean    != null) stats.push('🧤 ' + t.clean + ' CS');
-              if (t.conceded != null) stats.push('🥅 ' + t.conceded);
-            }
-            if (t.rating) stats.push('⭐ ' + t.rating);
-            if (t.result) stats.push('🏆 ' + t.result);
-            return '<div class="history-entry" style="flex-direction:column;align-items:flex-start;gap:3px;padding:8px 0;cursor:pointer" onclick="closeDetail();openTourneyEntry(\'' + type + '\',\'' + id + '\',' + ti + ')">' +
-              '<div style="display:flex;justify-content:space-between;width:100%">' +
-                '<span style="font-weight:600;font-size:13px;color:var(--text)">' + t.name + '</span>' +
-                '<span style="font-size:11px;color:var(--text3)">' + (t.season||'') + '</span>' +
-              '</div>' +
-              (stats.length ? '<div style="font-size:11px;color:var(--text2)">' + stats.join(' · ') + '</div>' : '') +
-              (t.note ? '<div style="font-size:11px;color:var(--text3);font-style:italic">' + t.note + '</div>' : '') +
-            '</div>';
-          }).join('')
-        : '<div style="color:var(--text3);font-size:12px;text-align:center;padding:8px">No tournaments logged — tap 🏆 Log Tournament</div>';
-    } else {
-      tourneySection.style.display = 'none';
-    }
-  }
-  // Tournament history (youth only)
+  const editType = (type==='xferYouth') ? 'xferYouth' : type;
   const detEditBtn = document.getElementById('detEditBtn'); if(detEditBtn) detEditBtn.onclick = () => { closeDetail(); editModal(editType, id); };
   const detStatsBtn = document.getElementById('detStatsBtn'); if(detStatsBtn) detStatsBtn.onclick = () => { closeDetail(); openStatEntry(type, id, -1); };
   document.getElementById('detailOverlay').classList.add('open');
@@ -2362,11 +2152,6 @@ function openDetail(type, id) {
     } else {
       promoteBtn.style.display = 'none';
     }
-  }
-  const tourneyBtn = document.getElementById('detTourneyBtn');
-  if (tourneyBtn) {
-    tourneyBtn.style.display = type === 'youth' ? '' : 'none';
-    tourneyBtn.onclick = () => { closeDetail(); openTourneyEntry(type, id, -1); };
   }
 }
 
