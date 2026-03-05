@@ -327,6 +327,10 @@ canvas{width:100%!important}
       <div class="dash-tile"><div class="dash-tile-n c-accent" id="dTargets">0</div><div class="dash-tile-l">Sr Targets</div></div>
       <div class="dash-tile"><div class="dash-tile-n" style="color:var(--green)" id="dYouthTargets">0</div><div class="dash-tile-l">Yth Targets</div></div>
     </div>
+    <div id="storageBar" style="margin:8px 0 0;font-size:11px;color:var(--text3);display:flex;align-items:center;gap:8px">
+      <div style="flex:1;height:4px;border-radius:2px;background:var(--border);overflow:hidden"><div id="storageBarFill" style="height:100%;border-radius:2px;background:var(--accent);transition:width .3s"></div></div>
+      <span id="storageLbl">0%</span>
+    </div>
 
     <!-- Season Summary -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px">
@@ -1122,7 +1126,7 @@ canvas{width:100%!important}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-const APP_VERSION = 'v5.3.2';
+const APP_VERSION = 'v5.3.3';
 // ═══════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════
@@ -1153,14 +1157,42 @@ function def() {
            seasons:[], tactics:{ formation:'4-3-3', locked:[] },
            chips:{squad:'All',youth:'All',xfer:'All',scout:'All'} };
 }
-function save() { localStorage.setItem(STORE_KEY, JSON.stringify(S)); }
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); }
+  catch(e) { if (e.name==='QuotaExceededError') { toast('Storage full — trimming scout DB'); trimDB(); try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch{} } }
+  rebuildIndex();
+}
 function loadDB() {
   try { return JSON.parse(localStorage.getItem(DB_KEY)) || {}; } catch { return {}; }
 }
-function saveDB() { 
-  try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch(e) { console.warn('DB save failed',e); }
+function saveDB() {
+  try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
+  catch(e) { if (e.name==='QuotaExceededError') { toast('Storage full — trimming scout DB'); trimDB(); try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch{} } else console.warn('DB save failed',e); }
 }
 function dbSize() { return Object.keys(DB).length; }
+function storageUsed() {
+  let t = 0;
+  for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); t += k.length + (localStorage.getItem(k)||'').length; }
+  return t * 2;
+}
+function storagePct() { return (storageUsed() / (5 * 1024 * 1024) * 100).toFixed(1); }
+function trimDB() {
+  const entries = Object.entries(DB);
+  if (!entries.length) return;
+  entries.sort((a,b) => (a[1][2]||0) - (b[1][2]||0));
+  const cut = Math.max(1, Math.floor(entries.length * 0.2));
+  for (let i = 0; i < cut; i++) delete DB[entries[i][0]];
+  try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch{}
+}
+
+// Player index for O(1) lookups
+const _idx = new Map();
+function rebuildIndex() {
+  _idx.clear();
+  for (const t of ['squad','youth','xfer','xferYouth','scout'])
+    for (const p of S[t]||[]) _idx.set(t+'|'+p.id, p);
+}
+function getPlayer(type, id) { return _idx.get(type+'|'+id); }
 
 // Init
 document.getElementById('seasonPill').textContent = S.season;
@@ -1168,6 +1200,7 @@ document.getElementById('dashSeason').textContent = S.season;
 document.getElementById('dashClub').textContent = S.club.toUpperCase();
 document.getElementById('dashManager').textContent = S.manager.toUpperCase();
 document.getElementById('appVersionTag').textContent = APP_VERSION;
+rebuildIndex();
 renderAll();
 
 // ═══════════════════════════════════════════════════
@@ -1421,6 +1454,11 @@ function renderDash() {
   document.getElementById('dashSeason').textContent = S.season;
   document.getElementById('dashClub').textContent = S.club.toUpperCase();
   document.getElementById('dashManager').textContent = S.manager.toUpperCase();
+  const pct = parseFloat(storagePct());
+  const fill = document.getElementById('storageBarFill');
+  if (fill) { fill.style.width = Math.min(pct,100)+'%'; fill.style.background = pct>90?'var(--red)':pct>70?'var(--orange)':'var(--accent)'; }
+  const lbl = document.getElementById('storageLbl');
+  if (lbl) lbl.textContent = pct+'%';
   renderSeasonLog();
 }
 
@@ -1631,7 +1669,7 @@ function saveYouth() {
     ovr:parseInt(document.getElementById('yOvr').value)||0, pot:parseInt(document.getElementById('yPot').value)||0,
     status:document.getElementById('yStatus').value, loanClub:document.getElementById('yLoan').value.trim(),
     notes:document.getElementById('yNotes').value.trim(), altPos:[], history:[] };
-  if (eId) { const i=S.youth.findIndex(x=>x.id===eId); if(i>-1){p.history=S.youth[i].history||[];p.altPos=S.youth[i].altPos||[];S.youth[i]=p;} }
+  if (eId) { const i=S.youth.findIndex(x=>x.id===eId); if(i>-1){p.history=S.youth[i].history||[];p.altPos=S.youth[i].altPos||[];p.tournaments=S.youth[i].tournaments||[];S.youth[i]=p;} }
   else { if(p.ovr) p.history=[{season:S.season,ovr:p.ovr,note:'Initial entry'}]; S.youth.push(p); }
   save(); renderYouth(); closeModal('youth'); toast(eId?'Updated':'Youth player added ✓');
 }
@@ -1780,9 +1818,7 @@ let statsType = null, statsId = null, statsIdx = -1;
 
 function openStatEntry(type, id, entryIdx) {
   statsType = type; statsId = id; statsIdx = entryIdx;
-  if (!S.xferYouth) S.xferYouth = [];
-  const m = {squad:S.squad, youth:S.youth, xfer:S.xfer, xferYouth:S.xferYouth, scout:S.scout};
-  const p = m[type]?.find(x=>x.id===id);
+  const p = getPlayer(type, id);
   if (!p) return;
 
   const isGK = p.pos === 'GK';
@@ -1827,9 +1863,7 @@ function openStatEntry(type, id, entryIdx) {
 
 function saveStatEntry() {
   if (!statsType || !statsId) return;
-  if (!S.xferYouth) S.xferYouth = [];
-  const m = {squad:S.squad, youth:S.youth, xfer:S.xfer, xferYouth:S.xferYouth, scout:S.scout};
-  const p = m[statsType]?.find(x=>x.id===statsId);
+  const p = getPlayer(statsType, statsId);
   if (!p) return;
   if (!p.history) p.history = [];
 
@@ -1869,9 +1903,7 @@ function saveStatEntry() {
 
 function delStatEntry() {
   if (!statsType || !statsId || statsIdx < 0) return;
-  if (!S.xferYouth) S.xferYouth = [];
-  const m = {squad:S.squad, youth:S.youth, xfer:S.xfer, xferYouth:S.xferYouth, scout:S.scout};
-  const p = m[statsType]?.find(x=>x.id===statsId);
+  const p = getPlayer(statsType, statsId);
   if (!p || !p.history) return;
   p.history.splice(statsIdx, 1);
   save();
@@ -1887,9 +1919,7 @@ let tourneyType = null, tourneyId = null, tourneyIdx = -1;
 
 function openTourneyEntry(type, id, entryIdx) {
   tourneyType = type; tourneyId = id; tourneyIdx = entryIdx;
-  if (!S.xferYouth) S.xferYouth = [];
-  const m = {squad:S.squad, youth:S.youth, xfer:S.xfer, xferYouth:S.xferYouth, scout:S.scout};
-  const p = m[type]?.find(x=>x.id===id);
+  const p = getPlayer(type, id);
   if (!p) return;
   const isGK = p.pos === 'GK';
   document.getElementById('tourneyAttFields').style.display = isGK ? 'none' : '';
@@ -1928,9 +1958,7 @@ function openTourneyEntry(type, id, entryIdx) {
 
 function saveTourneyEntry() {
   if (!tourneyType || !tourneyId) return;
-  if (!S.xferYouth) S.xferYouth = [];
-  const m = {squad:S.squad, youth:S.youth, xfer:S.xfer, xferYouth:S.xferYouth, scout:S.scout};
-  const p = m[tourneyType]?.find(x=>x.id===tourneyId);
+  const p = getPlayer(tourneyType, tourneyId);
   if (!p) return;
   if (!p.tournaments) p.tournaments = [];
   const tName = document.getElementById('tourneyName').value.trim();
@@ -1953,6 +1981,7 @@ function saveTourneyEntry() {
   } else {
     p.tournaments.push(entry);
   }
+  if (tourneyType === 'youth' || tourneyType === 'xferYouth') aggregateYouthStats(p);
   save();
   closeModal('tourney');
   openDetail(tourneyType, tourneyId);
@@ -1961,11 +1990,10 @@ function saveTourneyEntry() {
 
 function delTourneyEntry() {
   if (!tourneyType || !tourneyId || tourneyIdx < 0) return;
-  if (!S.xferYouth) S.xferYouth = [];
-  const m = {squad:S.squad, youth:S.youth, xfer:S.xfer, xferYouth:S.xferYouth, scout:S.scout};
-  const p = m[tourneyType]?.find(x=>x.id===tourneyId);
+  const p = getPlayer(tourneyType, tourneyId);
   if (!p || !p.tournaments) return;
   p.tournaments.splice(tourneyIdx, 1);
+  if (tourneyType === 'youth' || tourneyType === 'xferYouth') aggregateYouthStats(p);
   save();
   closeModal('tourney');
   openDetail(tourneyType, tourneyId);
@@ -1973,8 +2001,32 @@ function delTourneyEntry() {
 }
 
 // ═══════════════════════════════════════════════════
-//  YOUTH TOURNAMENT STATS
+//  YOUTH STATS AUTO-AGGREGATION
 // ═══════════════════════════════════════════════════
+function aggregateYouthStats(p) {
+  if (!p.tournaments || !p.tournaments.length) { p.history = []; return; }
+  const bySeason = {};
+  for (const t of p.tournaments) {
+    const s = t.season || S.season;
+    if (!bySeason[s]) bySeason[s] = { season:s, ovr:p.ovr||0, apps:0, goals:0, assists:0, cs:0, rating:0, _count:0 };
+    const b = bySeason[s];
+    b.apps += (+t.apps||0);
+    b.goals += (+t.goals||0);
+    b.assists += (+t.assists||0);
+    b.cs += (+t.clean||0);
+    if (+t.rating) { b.rating += +t.rating; b._count++; }
+  }
+  p.history = Object.values(bySeason).map(b => {
+    if (b._count) b.rating = +(b.rating / b._count).toFixed(1);
+    else delete b.rating;
+    if (!b.cs) delete b.cs;
+    delete b._count;
+    return b;
+  }).sort((a,b) => {
+    const n = s => +s.replace(/\D/g,'') || 0;
+    return n(a.season) - n(b.season);
+  });
+}
 
 // ═══════════════════════════════════════════════════
 //  SCOUT DATABASE
@@ -2163,9 +2215,7 @@ function openModal(type) {
 
 function editModal(type, id) {
   eId=id; eType=type;
-  if (!S.xferYouth) S.xferYouth=[];
-  const m = {squad:S.squad,youth:S.youth,xfer:S.xfer,xferYouth:S.xferYouth,scout:S.scout};
-  const p = m[type]?.find(x=>x.id===id); if(!p) return;
+  const p = getPlayer(type, id); if(!p) return;
   if (type==='squad') {
     document.getElementById('squadMT').textContent='Edit Player'; document.getElementById('sDelBtn').style.display='';
     document.getElementById('sName').value=p.name||''; document.getElementById('sPos').value=p.pos||'CM';
@@ -2228,9 +2278,7 @@ document.querySelectorAll('.overlay').forEach(o => {
 function openDetail(type, id) {
   try {
   detType=type; detId=id;
-  if (!S.xferYouth) S.xferYouth=[];
-  const m = {squad:S.squad,youth:S.youth,xfer:S.xfer,xferYouth:S.xferYouth,scout:S.scout};
-  const p = m[type]?.find(x=>x.id===id); if(!p) return;
+  const p = getPlayer(type, id); if(!p) return;
   const color = pc(p.pos);
   document.getElementById('detAv').style.borderColor = color;
   document.getElementById('detAv').style.color = color;
@@ -2275,6 +2323,7 @@ function openDetail(type, id) {
   document.getElementById('detExtra').innerHTML = extra;
 
   // Season stats history
+  const isYouthType = type === 'youth';
   document.getElementById('detHistory').innerHTML = hist.length
     ? hist.map((h, hi) => {
         const statLine = [];
@@ -2287,7 +2336,8 @@ function openDetail(type, id) {
           if (h.conceded!= null && h.conceded!== '') statLine.push(`<span style="color:var(--red)">🥅 ${h.conceded}</span>`);
         }
         if (h.rating) statLine.push(`<span style="color:var(--yellow)">⭐ ${h.rating}</span>`);
-        return `<div class="history-entry" style="flex-direction:column;align-items:flex-start;gap:4px;cursor:pointer" onclick="closeDetail();openStatEntry('${type}','${id}',${hi})">
+        const clickAttr = isYouthType ? '' : `cursor:pointer" onclick="closeDetail();openStatEntry('${type}','${id}',${hi})`;
+        return `<div class="history-entry" style="flex-direction:column;align-items:flex-start;gap:4px;${clickAttr}">
           <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
             <span style="font-family:var(--font-d);letter-spacing:.5px;color:var(--text2)">${h.season}</span>
             <span style="font-family:var(--font-d);font-size:20px;color:var(--accent)">${h.ovr||'—'}</span>
@@ -2296,7 +2346,7 @@ function openDetail(type, id) {
           ${h.note ? `<div style="font-size:11px;color:var(--text3);font-style:italic">${esc(h.note)}</div>` : ''}
         </div>`;
       }).join('')
-    : '<div style="color:var(--text3);font-size:13px;text-align:center;padding:12px">No stats yet — tap 📊 Log Stats</div>';
+    : `<div style="color:var(--text3);font-size:13px;text-align:center;padding:12px">${isYouthType ? 'Stats auto-aggregate from tournaments' : 'No stats yet — tap 📊 Log Stats'}</div>`;
 
   renderDetailChart(hist, p.pos);
 
@@ -2320,7 +2370,7 @@ function openDetail(type, id) {
             }
             if (t.rating) stats.push(`<span style="color:var(--yellow)">⭐ ${t.rating}</span>`);
             if (t.result) stats.push(`<span style="color:var(--purple)">🏆 ${t.result}</span>`);
-            return `<div class="history-entry" style="flex-direction:column;align-items:flex-start;gap:4px;padding:10px 0;cursor:pointer" onclick="closeDetail();openTourneyEntry('${type}','${id}',${ti})">
+            return `<div class="history-entry" style="flex-direction:column;align-items:flex-start;gap:4px;cursor:pointer" onclick="closeDetail();openTourneyEntry('${type}','${id}',${ti})">
               <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
                 <span style="font-weight:600;font-size:13px;color:var(--text)">${t.name}</span>
                 <span style="font-size:11px;color:var(--text3)">${t.season||''}</span>
@@ -2338,7 +2388,10 @@ function openDetail(type, id) {
   const detEditBtn = document.getElementById('detEditBtn');
   if (detEditBtn) detEditBtn.onclick = () => { closeDetail(); editModal(detType, id); };
   const detStatsBtn = document.getElementById('detStatsBtn');
-  if (detStatsBtn) detStatsBtn.onclick = () => { closeDetail(); openStatEntry(type, id, -1); };
+  if (detStatsBtn) {
+    if (isYouthType) { detStatsBtn.style.display = 'none'; }
+    else { detStatsBtn.style.display = ''; detStatsBtn.onclick = () => { closeDetail(); openStatEntry(type, id, -1); }; }
+  }
   document.getElementById('detailOverlay').classList.add('open');
   } catch(e) { console.error('openDetail error:', e); document.getElementById('detailOverlay').classList.add('open'); }
 
@@ -2773,8 +2826,7 @@ function doSwap(playerId) {
   // Remove any existing lock for this slot
   S.tactics.locked = S.tactics.locked.filter(l => l.slot !== swapSlotIndex);
   // Find the current auto-assigned player for this slot
-  const squad = S.squad || [];
-  const player = squad.find(p => p.id === playerId);
+  const player = getPlayer('squad', playerId);
   if (!player) { closeModal('swap'); return; }
   // Add lock: slot i → player id
   S.tactics.locked.push({ slot: swapSlotIndex, playerId });
@@ -2814,7 +2866,7 @@ function benchDragEnd(event) {
 function slotDragOver(event, slotIdx, slotPos) {
   event.preventDefault();
   if (!dragPlayerId) return;
-  const player = (S.squad||[]).find(p => p.id === dragPlayerId);
+  const player = getPlayer('squad', dragPlayerId);
   if (!player) return;
   const fits = canPlay(player.pos, slotPos, player.altPos);
   event.dataTransfer.dropEffect = fits ? 'move' : 'none';
@@ -2837,7 +2889,7 @@ function slotDrop(event, slotIdx, slotPos) {
   event.currentTarget.style.outline = '';
   event.currentTarget.style.background = '';
   if (!dragPlayerId) return;
-  const player = (S.squad||[]).find(p => p.id === dragPlayerId);
+  const player = getPlayer('squad', dragPlayerId);
   if (!player) return;
   if (!canPlay(player.pos, slotPos, player.altPos)) {
     toast(`${player.name} can't play ${slotPos}`);
@@ -2850,7 +2902,7 @@ function slotDrop(event, slotIdx, slotPos) {
 
 // Tap a bench chip to open swap sheet for compatible slots
 function benchTap(playerId) {
-  const player = (S.squad||[]).find(p => p.id === playerId);
+  const player = getPlayer('squad', playerId);
   if (!player) return;
   const formation = S.tactics?.formation || '4-3-3';
   const slots = FORMATIONS[formation].slots;
@@ -2880,7 +2932,7 @@ function doSwapById(slotIdx, playerId, slotPos) {
   S.tactics.locked.push({ slot: slotIdx, playerId });
   save();
   renderTactics();
-  const player = (S.squad||[]).find(p => p.id === playerId);
+  const player = getPlayer('squad', playerId);
   toast(`${player?.name || 'Player'} → ${slotPos}`);
 }
 
